@@ -18,10 +18,7 @@ public class Vector extends Point {
      * @throws IllegalArgumentException if the vector is the zero vector
      */
     public Vector(double x, double y, double z) {
-        super(x, y, z);
-        if (xyz.equals(Double3.ZERO)) {
-            throw new IllegalArgumentException("Vector cannot be the zero vector");
-        }
+        this(new Double3(x,y,z));
     }
 
     /**
@@ -51,15 +48,7 @@ public class Vector extends Point {
                 && xyz.equals(vector.xyz);
     }
 
-    /**
-     * Returns a string representation of the vector.
-     *
-     * @return a string describing the vector
-     */
-    @Override
-    public String toString() {
-        return super.toString();
-    }
+
 
     /**
      * Returns a hash code value for the vector.
@@ -78,7 +67,9 @@ public class Vector extends Point {
      * @return the squared length of the vector
      */
     public double lengthSquared() {
-        return xyz.d1() * xyz.d1() + xyz.d2() * xyz.d2() + xyz.d3() * xyz.d3();
+        return xyz.d1() * xyz.d1()
+                + xyz.d2() * xyz.d2()
+                + xyz.d3() * xyz.d3();
     }
 
     /**
