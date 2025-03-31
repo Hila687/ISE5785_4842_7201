@@ -30,11 +30,13 @@ public class Tube extends RadialGeometry {
      * Returns the normal vector to the tube at the specified point on its surface.
      * <p><b>Note:</b> This method is currently not implemented and returns {@code null}.</p>
      *
-     * @param p1 the point on the surface of the tube
+     * @param p the point on the surface of the tube
      * @return the normal vector at the given point (currently {@code null})
      */
     @Override
-    public Vector getNormal(Point p1) {
-        return null; // Should return the normalized vector from the tube surface to its axis
+    public Vector getNormal(Point p) {
+        //projection of p-o on the ray
+        double t = p.subtract( axis.origin()).dotProduct(axis.direction());// (p-po)*v(t=u*v)
+        return p.subtract(axis.origin().add(axis.direction().scale(t))).normalize();// p-(po+u*v)
     }
 }

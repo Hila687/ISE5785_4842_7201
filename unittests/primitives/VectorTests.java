@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 class VectorTests {
     private static final double ACCURACY = 1e-10;
+    Vector v1 = new Vector(1, 2, 3);
+    Vector v2 = new Vector(2, 3, 4);
 
     /**
      * Test method for {@link primitives.Vector#Vector(double, double, double)}.
@@ -27,8 +29,7 @@ class VectorTests {
         // ============ Equivalence Partitions Tests ==============
 
         // TC01: lengthSquared of vector (1, 2, 3) = 14
-        Vector v = new Vector(1, 2, 3);
-        assertEquals(14, v.lengthSquared(), "lengthSquared() wrong value");
+        assertEquals(14, v1.lengthSquared(), "lengthSquared() wrong value");
     }
 
     /**
@@ -39,8 +40,7 @@ class VectorTests {
         // ============ Equivalence Partitions Tests ==============
 
         // TC01: length of vector (1, 2, 3) = 3.7416573867739413
-        Vector v = new Vector(1, 2, 3);
-        assertEquals(3.7416573867739413, v.length(), "length() wrong value");
+        assertEquals(3.7416573867739413, v1.length(), "length() wrong value");
     }
 
     /**
@@ -51,9 +51,8 @@ class VectorTests {
         // ============ Equivalence Partitions Tests ==============
 
         // TC01: scale of vector (1, 2, 3) by 2 = (2, 4, 6)
-        Vector v = new Vector(1, 2, 3);
-        Vector v1 = v.scale(2);
-        assertEquals(new Vector(2, 4, 6), v1, "Scale() wrong value");
+        Vector v3 = v1.scale(2);
+        assertEquals(new Vector(2, 4, 6), v3, "Scale() wrong value");
     }
 
     /**
@@ -64,9 +63,8 @@ class VectorTests {
         // =============== Boundary Values Tests ==================
 
         // TC11: scaling vector by 0 should throw exception
-        Vector v = new Vector(1, 2, 3);
         assertThrows(IllegalArgumentException.class,
-                () -> v.scale(0),
+                () -> v1.scale(0),
                 "Scaling by 0 should throw an exception (zero vector is not allowed)");
     }
 
@@ -79,10 +77,8 @@ class VectorTests {
         // ============ Equivalence Partitions Tests ==============
 
         // TC01: add vector (1, 2, 3) to vector (-1, -2, -3) = (0, 0, 0)
-        Vector v = new Vector(1, 2, 3);
-        Vector v1 = new Vector(2, 3, 4);
-        Vector v2 = v.add(v1);
-        assertEquals(new Vector(3, 5, 7), v2, "Add() wrong value");
+        Vector v3 = v1.add(v2);
+        assertEquals(new Vector(3, 5, 7), v3, "Add() wrong value");
     }
 
     /**
@@ -93,9 +89,8 @@ class VectorTests {
         // ============ Equivalence Partitions Tests ==============
 
         // TC01: normalize vector (1, 2, 3) = (0.2672612419124244, 0.5345224838248488, 0.8017837257372732)
-        Vector v = new Vector(1, 2, 3);
-        Vector v1 = v.normalize();
-        assertEquals(new Vector(0.2672612419124244, 0.5345224838248488, 0.8017837257372732), v1, "Normalize() wrong value");
+        Vector v3 = v1.normalize();
+        assertEquals(new Vector(0.2672612419124244, 0.5345224838248488, 0.8017837257372732), v3, "Normalize() wrong value");
     }
 
     /**
@@ -106,8 +101,7 @@ class VectorTests {
         // ============ Equivalence Partitions Tests ==============
 
         // TC01: dotProduct of vector (1, 2, 3) and vector (2, 3, 4) = 20
-        Vector v1 = new Vector(1, 2, 3);
-        Vector v2 = new Vector(2, 3, 4);
+
         assertEquals(20, v1.dotProduct(v2), "DotProduct() wrong value");
     }
 
@@ -119,8 +113,6 @@ class VectorTests {
         // ============ Equivalence Partitions Tests ==============
 
         // TC01: crossProduct of vector (1, 2, 3) and vector (2, 3, 4) = (-1, 2, -1)
-        Vector v1 = new Vector(1, 2, 3);
-        Vector v2 = new Vector(2, 3, 4);
         Vector vr = v1.crossProduct(v2);
 
         // TC01: result orthogonal to operands
@@ -135,7 +127,6 @@ class VectorTests {
     @Test
     void testCrossProductParallelVectors() {
         // =============== Boundary Values Tests ==================
-        Vector v1 = new Vector(1, 2, 3);
 
         // TC11: crossProduct of parallel vectors should throw exception
         Vector v3 = new Vector(-2, -4, -6); // מקביל ל־v1
@@ -155,7 +146,7 @@ class VectorTests {
         // TC01: (3, 5, 7) - (1, 2, 3) = Vector(2, 3, 4)
         Point p1 = new Point(3, 5, 7);
         Point p2 = new Point(1, 2, 3);
-        assertEquals(new Vector(2, 3, 4), p1.subtract(p2), "Point.subtract() wrong result");
+        assertEquals(v2, p1.subtract(p2), "Point.subtract() wrong result");
     }
 
     @Test

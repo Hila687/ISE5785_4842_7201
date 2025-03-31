@@ -27,4 +27,16 @@ public class Ray {
         this.head = head;
         this.direction = direction.normalize();
     }
+
+    public Point origin() {
+        return head;
+    }
+
+    public Vector direction() {
+        return direction;
+    }
+
+    public Point getPoint(double t) {
+        return head.add(direction.scale(t)); // head + t * direction
+    }
 }

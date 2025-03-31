@@ -8,8 +8,7 @@ import primitives.*;
 
 /**
  * Test program for the 1st stage
- * @author Hila Rosental ID:215134842 EMAIL:hilar687@gmail.com
- * @author Hila Miler ID:327737201 EMAIL:millerhila@gmail.com
+ * @author    Dan Zilberstein
  */
 public final class Main {
    /** A point for tests at (1,2,3) */

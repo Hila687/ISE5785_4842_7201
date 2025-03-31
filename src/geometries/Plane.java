@@ -27,7 +27,10 @@ public class Plane extends Geometry {
      * @param p3 third point on the plane
      */
     public Plane(Point p1, Point p2, Point p3) {
-        normal = null; // Should be calculated using cross product of (p2 - p1) and (p3 - p1)
+        Vector v1 = p2.subtract(p1);
+        Vector v2 = p3.subtract(p1);
+        Vector normal = v1.crossProduct(v2).normalize();
+        this.normal = normal;
         this.q0 = p1;
     }
 

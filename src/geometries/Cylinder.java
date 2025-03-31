@@ -27,12 +27,32 @@ public class Cylinder extends Tube {
     }
 
     /**
-     * Returns the height of the cylinder.
+     * Returns the normal to the cylinder.
      *
-     * @return the height
+     * @return the normal to the cylinder
      */
-    public double getHeight() {
-        return height;
+    @Override
+    public Vector getNormal(Point p) {
+        double t;
+        try {
+            t = axis.direction().dotProduct(p.subtract(axis.origin()));
+        } catch (IllegalArgumentException e) {
+            // הנקודה היא בדיוק על המקור של הקרן (מרכז הבסיס התחתון)
+            return axis.direction().scale(-1);
+        }
+
+        final double eps = 1e-10;
+
+        if (Math.abs(t) <= eps) {
+            return axis.direction().scale(-1);
+        }
+
+        if (Math.abs(t - height) <= eps) {
+            return axis.direction();
+        }
+
+        return super.getNormal(p);
     }
+
 }
 

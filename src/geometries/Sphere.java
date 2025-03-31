@@ -28,11 +28,11 @@ public class Sphere extends RadialGeometry {
      * Returns the normal vector to the sphere at the specified point on its surface.
      * <p><b>Note:</b> This method is currently not implemented and returns {@code null}.</p>
      *
-     * @param p1 the point on the surface of the sphere
+     * @param p the point on the surface of the sphere
      * @return the normal vector at the given point (currently {@code null})
      */
     @Override
-    public Vector getNormal(Point p1) {
-        return null; // Should return (p1 - center).normalize()
+    public Vector getNormal(Point p) {
+        return p.subtract(center).normalize();
     }
 }
