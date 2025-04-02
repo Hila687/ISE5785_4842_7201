@@ -76,7 +76,7 @@ class VectorTests {
     void testAdd() {
         // ============ Equivalence Partitions Tests ==============
 
-        // TC01: add vector (1, 2, 3) to vector (-1, -2, -3) = (0, 0, 0)
+        // TC01: add vector (1, 2, 3) to vector (2, 3, 4) = (3, 5, 7)
         Vector v3 = v1.add(v2);
         assertEquals(new Vector(3, 5, 7), v3, "Add() wrong value");
     }

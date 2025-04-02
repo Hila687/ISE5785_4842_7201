@@ -43,7 +43,7 @@ class PointTests {
         Point P3 = P1.add(V1);
 
         // TC01: add vector (1, 2, 3) to point (1, 2, 3) = (2, 4, 6)
-        assertEquals(new Point(2, 4, 6), P3, "Point addition did not produce the expected result");
+        assertEquals(P2, P3, "Point addition did not produce the expected result");
     }
 
     /**
