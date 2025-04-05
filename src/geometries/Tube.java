@@ -4,6 +4,8 @@ import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
 
+import java.util.List;
+
 /**
  * Represents an infinite tube in 3D space.
  * A tube is defined by a central axis (as a ray) and a constant radius.
@@ -36,7 +38,12 @@ public class Tube extends RadialGeometry {
     @Override
     public Vector getNormal(Point p) {
         //projection of p-o on the ray
-        double t = p.subtract( axis.origin()).dotProduct(axis.direction());// (p-po)*v(t=u*v)
-        return p.subtract(axis.origin().add(axis.direction().scale(t))).normalize();// p-(po+u*v)
+        double t = p.subtract( axis.getP0()).dotProduct(axis.getDirection());// (p-po)*v(t=u*v)
+        return p.subtract(axis.getP0().add(axis.getDirection().scale(t))).normalize();// p-(po+u*v)
+    }
+
+    @Override
+    public List<Point> findIntersections(Ray ray) {
+        return null;
     }
 }
