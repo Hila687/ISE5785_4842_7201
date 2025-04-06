@@ -1,8 +1,7 @@
 package geometries;
 
 import org.junit.jupiter.api.Test;
-import primitives.Point;
-import primitives.Vector;
+import primitives.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -84,5 +83,57 @@ class PlaneTests {
 
         assertEquals(0, normal.dotProduct(v1), ACCURACY, "Normal is not orthogonal to first vector in the plane");
         assertEquals(0, normal.dotProduct(v2), ACCURACY, "Normal is not orthogonal to second vector in the plane");
+    }
+
+    /**
+     * Test method for {@link geometries.Plane#findIntersections(primitives.Ray)}.
+     */
+    @Test
+    void testFindIntersections() {
+        Plane plane = new Plane(
+                new Point(0, 0, 1),
+                new Point(1, 0, 1),
+                new Point(0, 1, 1)
+        );
+
+        // ============ Equivalence Partitions Tests ==============
+
+        // TC01: Ray intersects the plane
+        Ray ray1 = new Ray(new Point(0, 0, 0), new Vector(0, 0, 1));
+        assertNotNull(plane.findIntersections(ray1), "Ray should intersect the plane");
+
+        // TC02: Ray does not intersect the plane
+        Ray ray2 = new Ray(new Point(0, 0, 0), new Vector(0, 0, -1));
+        assertNull(plane.findIntersections(ray2), "Ray should not intersect the plane");
+
+        // =============== Boundary Values Tests ==================
+
+        // TC11: Ray is parallel to the plane and included in the plane
+        Ray ray3 = new Ray(new Point(0, 0, 1), new Vector(1, 1, 0));
+        assertNull(plane.findIntersections(ray3), "Ray lies in the plane – no intersection");
+
+        // TC12: Ray is parallel to the plane but not included
+        Ray ray4 = new Ray(new Point(0, 0, 2), new Vector(1, 0, 0));
+        assertNull(plane.findIntersections(ray4), "Ray is parallel and not in the plane");
+
+        // TC13: Ray is orthogonal to the plane and starts before
+        Ray ray5 = new Ray(new Point(0, 0, 0), new Vector(0, 0, 1));
+        assertNotNull(plane.findIntersections(ray5), "Ray is orthogonal and should intersect");
+
+        // TC14: Ray is orthogonal and starts in the plane
+        Ray ray6 = new Ray(new Point(0, 0, 1), new Vector(0, 0, 1));
+        assertNull(plane.findIntersections(ray6), "Ray is orthogonal and starts in the plane");
+
+        // TC15: Ray is orthogonal and starts after the plane
+        Ray ray7 = new Ray(new Point(0, 0, 2), new Vector(0, 0, 1));
+        assertNull(plane.findIntersections(ray7), "Ray is orthogonal and starts after the plane");
+
+        // TC16: Ray is neither orthogonal nor parallel and starts at the plane (but not contained in it)
+        Ray ray8 = new Ray(new Point(0.5, 0.5, 1), new Vector(1, 1, 1));
+        assertNull(plane.findIntersections(ray8), "Ray starts at the plane and goes out, should return null");
+
+        // TC17: Ray starts exactly at the reference point Q0 and is neither orthogonal nor parallel
+        Ray ray9 = new Ray(new Point(0, 0, 1), new Vector(1, 2, -3));
+        assertNull(plane.findIntersections(ray9), "Ray starts at Q0 and goes out, should return null");
     }
 }

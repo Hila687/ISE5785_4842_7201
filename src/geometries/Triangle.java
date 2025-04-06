@@ -6,6 +6,8 @@ import primitives.Vector;
 
 import java.util.List;
 
+import static primitives.Util.*;
+
 /**
  * Represents a triangle in 3D space.
  * A triangle is a specific type of polygon with exactly three vertices.
@@ -23,36 +25,42 @@ public class Triangle extends Polygon {
         super(p1, p2, p3);
     }
 
+
+    /**
+     * returns intersection points of the triangle with a ray
+     * @param ray the ray to intersect with the geometry
+     * @return intersection points of the triangle with the ray
+     */
     @Override
     public List<Point> findIntersections(Ray ray) {
-        // barycentric coordinates;
-//        Vector edge1 = vertices.get(1).subtract(vertices.get(0));
-//        Vector edge2 = vertices.get(2).subtract(vertices.get(0));
-//        Vector h = ray.direction().crossProduct(edge2);
-//        double a = edge1.dotProduct(h);
-//        if (isZero(a)) {
-//            return null; // ray is parallel to the triangle
-//        }
-//        double f = 1 / a;
-//        Vector s = ray.origin().subtract(vertices.get(0));
-//        double u = f * s.dotProduct(h);
-//        if (u < 0 || u > 1) {
-//            return null;
-//        }
-//        Vector q = s.crossProduct(edge1);
-//        double v = f * ray.direction().dotProduct(q);
-//        if (v < 0 || u + v > 1) {
-//            return null;
-//        }
-//        double t = f * edge2.dotProduct(q);
-//        if (t > 0) {
-//            return List.of(ray.getPoint(t));
-//        }
-          return null;
+        List<Point> intersection = plane.findIntersections(ray);
+        if (intersection == null) {
+            return null;
+        }
 
+        Point p0 = ray.getP0();
+        Vector dir = ray.getDirection();
 
+        // Vectors from ray start to triangle vertices
+        Vector v1 = vertices.get(0).subtract(p0);
+        Vector v2 = vertices.get(1).subtract(p0);
+        Vector v3 = vertices.get(2).subtract(p0);
 
+        // Normals to the edges
+        Vector n1 = v1.crossProduct(v2).normalize();
+        Vector n2 = v2.crossProduct(v3).normalize();
+        Vector n3 = v3.crossProduct(v1).normalize();
 
+        double s1 = alignZero(dir.dotProduct(n1));
+        double s2 = alignZero(dir.dotProduct(n2));
+        double s3 = alignZero(dir.dotProduct(n3));
 
+        // Check if all signs are the same (either all positive or all negative)
+        if ((s1 > 0 && s2 > 0 && s3 > 0) || (s1 < 0 && s2 < 0 && s3 < 0)) {
+            return intersection;
+        }
+
+        return null;
     }
+
 }

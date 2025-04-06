@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import primitives.*;
 
+import java.util.List;
+
 /**
  * Testing Polygons
  * @author Dan
@@ -16,6 +18,10 @@ class PolygonTests {
     * assertEquals
     */
    private static final double DELTA = 0.000001;
+   private static final Point P0 = new Point(0, 0, -1);
+   private static final Vector DIRECTION_UP = new Vector(0, 0, 1);
+   private static final Vector DIRECTION_SIDE = new Vector(0, 1, 0);
+
 
    /** Test method for {@link geometries.Polygon#Polygon(primitives.Point...)}. */
    @Test
@@ -83,5 +89,37 @@ class PolygonTests {
       for (int i = 0; i < 3; ++i)
          assertEquals(0d, result.dotProduct(pts[i].subtract(pts[i == 0 ? 3 : i - 1])), DELTA,
                       "Polygon's normal is not orthogonal to one of the edges");
+   }
+
+   /**
+    * Test method for {@link geometries.Polygon#findIntersections(primitives.Ray)}.
+    */
+   @Test
+   void testFindIntersections() {
+      // Define a square polygon in plane z = 1
+      Polygon polygon = new Polygon(
+              new Point(1, 1, 1),
+              new Point(-1, 1, 1),
+              new Point(-1, -1, 1),
+              new Point(1, -1, 1)
+      );
+
+      // TC01: Ray intersects the polygon inside
+      Ray rayInside = new Ray(P0, DIRECTION_UP);
+      List<Point> result1 = polygon.findIntersections(rayInside);
+      assertNotNull(result1, "Ray should intersect the polygon");
+      assertEquals(1, result1.size(), "Wrong number of intersection points");
+
+      // TC02: Ray misses the polygon (right direction but outside)
+      Ray rayMiss = new Ray(new Point(2, 2, -1), DIRECTION_UP);
+      assertNull(polygon.findIntersections(rayMiss), "Ray should miss the polygon");
+
+      // TC03: Ray hits the polygon's edge (should return null)
+      Ray rayEdge = new Ray(new Point(1, 0, -1), DIRECTION_UP);
+      assertNull(polygon.findIntersections(rayEdge), "Ray on polygon edge is not considered inside");
+
+      // TC04: Ray hits the polygon's vertex (should return null)
+      Ray rayVertex = new Ray(new Point(1, 1, -1), DIRECTION_UP);
+      assertNull(polygon.findIntersections(rayVertex), "Ray on polygon vertex is not considered inside");
    }
 }

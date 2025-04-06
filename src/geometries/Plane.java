@@ -6,6 +6,8 @@ import primitives.Vector;
 
 import java.util.List;
 
+import static primitives.Util.*;
+
 /**
  * Represents an infinite plane in 3D space, defined by a point and a normal vector.
  */
@@ -61,6 +63,33 @@ public class Plane extends Geometry {
 
     @Override
     public List<Point> findIntersections(Ray ray) {
-        return null;
+        Point p0 = ray.getP0();
+        Vector dir = ray.getDirection();
+
+        Vector q0ToP0;
+        try {
+            q0ToP0 = q0.subtract(p0); // Q0 - P0
+        } catch (IllegalArgumentException e) {
+            // Ray starts exactly at Q0
+            return null;
+        }
+
+        double numerator = alignZero(normal.dotProduct(q0ToP0));
+        double denominator = alignZero(normal.dotProduct(dir));
+
+        // Ray is parallel to the plane (no intersection)
+        if (isZero(denominator)) {
+            return null;
+        }
+
+        double t = alignZero(numerator / denominator);
+
+        if (t <= 0) {
+            return null;
+        }
+
+        Point intersection = ray.getPoint(t);
+        return List.of(intersection);
     }
+
 }

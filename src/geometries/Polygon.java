@@ -79,8 +79,46 @@ public class Polygon extends Geometry {
    @Override
    public Vector getNormal(Point point) { return plane.getNormal(null); }
 
+   /**
+    * Returns the list of intersections of the ray with the polygon.
+    * @return the list of intersections of the ray with the polygon
+    */
    @Override
    public List<Point> findIntersections(Ray ray) {
-     return null;
+      // Step 1: check intersection with the plane
+      List<Point> intersection = plane.findIntersections(ray);
+      if (intersection == null) {
+         return null;
+      }
+
+      Point p0 = ray.getP0();
+      Vector dir = ray.getDirection();
+
+      int size = vertices.size();
+      Vector v1 = vertices.get(size - 1).subtract(p0);
+      Vector v2 = vertices.get(0).subtract(p0);
+
+      // first cross product
+      Vector n = v1.crossProduct(v2).normalize();
+      double sign = alignZero(dir.dotProduct(n));
+
+      if (isZero(sign)) return null;
+
+      boolean positive = sign > 0;
+
+      // Step 2: check all edges
+      for (int i = 1; i < size; i++) {
+         v1 = v2;
+         v2 = vertices.get(i).subtract(p0);
+         n = v1.crossProduct(v2).normalize();
+         sign = alignZero(dir.dotProduct(n));
+
+         if (isZero(sign) || (sign > 0) != positive) {
+            return null; // point is outside the polygon
+         }
+      }
+
+      return intersection; // valid intersection
    }
+
 }
