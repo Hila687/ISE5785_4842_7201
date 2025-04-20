@@ -44,45 +44,130 @@ public class Tube extends RadialGeometry {
         double t = p.subtract( axis.getP0()).dotProduct(axis.getDirection());// (p-po)*v(t=u*v)
         return p.subtract(axis.getP0().add(axis.getDirection().scale(t))).normalize();// p-(po+u*v)
     }
-
     @Override
     public List<Point> findIntersections(Ray ray) {
-        Vector v = ray.getDirection();         // Ray direction
-        Point p0 = ray.getP0();          // Ray origin
-        Vector va = axis.getDirection();    // Tube axis direction
-        Point pa = axis.getP0();      // Tube axis origin
 
-        Vector deltaP;
+        Point P0 = ray.getP0();
+        Vector v = ray.getDirection();
+
+        Point Pa = axis.getP0();
+        Vector Va = axis.getDirection();
+
+        //At^2 + Bt + C equation.
+        double A, B, C;
+
+        //(v,u) = v dot product u
+
+        //calculate the vector: V-(V,Va)Va
+        Vector VecA = v;
+        double Vva = v.dotProduct(Va);
+
         try {
-            deltaP = p0.subtract(pa);
-        } catch (IllegalArgumentException e) {
-            deltaP = new Vector(0, 0, 0);
+            if (!isZero(Vva))
+                VecA = v.subtract(Va.scale(Vva));
+
+            //A = (V-(V,Va)Va)^2
+            A = VecA.lengthSquared();
         }
 
-        // Project v and deltaP onto the axis
-        double vVa = v.dotProduct(va);
-        Vector vPerp = vVa == 0 ? v : v.subtract(va.scale(vVa));
+        //if A = 0 return null (there are no intersections)
+        catch (IllegalArgumentException ex) { // the ray is parallel to the axisRay
+            return null;
+        }
 
-        double dPVa = deltaP.dotProduct(va);
-        Vector dPerp = dPVa == 0 ? deltaP : deltaP.subtract(va.scale(dPVa));
+        //if A != 0 continue to calculate B and C
+        try {
 
-        double A = alignZero(vPerp.lengthSquared());
-        double B = alignZero(2 * vPerp.dotProduct(dPerp));
-        double C = alignZero(dPerp.lengthSquared() - radius * radius);
+            //calculate deltaP (delP) vector, P-Pa
+            Vector DeltaP = P0.subtract(Pa);
 
-        double discriminant = alignZero(B * B - 4 * A * C);
+            //The vector: delP - (delP,Va)Va
+            Vector DeltaPMinusDeltaPVaVa = DeltaP;
+            double DeltaPVa = DeltaP.dotProduct(Va);
 
-        if (discriminant < 0 || isZero(A)) return null;
+            if (!isZero(DeltaPVa))
+                DeltaPMinusDeltaPVaVa = DeltaP.subtract(Va.scale(DeltaPVa));
 
-        double sqrtDisc = Math.sqrt(discriminant);
-        double t1 = alignZero((-B + sqrtDisc) / (2 * A));
-        double t2 = alignZero((-B - sqrtDisc) / (2 * A));
+            //B = 2(V - (V,Va)Va , delP - (delP,Va)Va)
+            B = 2 * (VecA.dotProduct(DeltaPMinusDeltaPVaVa));
 
+            //C = (delP - (delP,Va)Va)^2 - r^2
+            C = DeltaPMinusDeltaPVaVa.lengthSquared() - radius * radius;
+        }
+        //in case delP = 0, or delP - (delP,Va)Va = (0, 0, 0)
+        catch (IllegalArgumentException ex) {
+            B = 0;
+            C = -1 * radius * radius;
+        }
+
+        //solving At^2 + Bt + C = 0
+
+        //the discrimation, B^2 - 4AC
+        double Disc = alignZero(B * B - 4 * A * C);
+
+        //no solutions for the equation. disc = 0 means that the ray parallel to the tube
+        if (Disc <= 0)
+            return null;
+
+        //the solutions for the equation
+        double t1, t2;
+
+        t1 = alignZero(-B + Math.sqrt(Disc)) / (2 * A);
+        t2 = alignZero(-B - Math.sqrt(Disc)) / (2 * A);
+
+        //taking all positive solutions
         List<Point> intersections = new LinkedList<>();
         if (t1 > 0) intersections.add(ray.getPoint(t1));
         if (t2 > 0 && !isZero(t2 - t1)) intersections.add(ray.getPoint(t2));
 
         return intersections.isEmpty() ? null : intersections;
+
     }
+
+//    @Override
+//    public List<Point> findIntersections(Ray ray) {
+//        Vector v = ray.getDirection();
+//        Point p0 = ray.getP0();
+//        Vector va = axis.getDirection();
+//        Point pa = axis.getP0();
+//
+//        Vector deltaP = null;
+//        double dPVa = 0;
+//        Vector dPerp = null;
+//
+//        if (!p0.equals(pa)) {
+//            deltaP = p0.subtract(pa);
+//            dPVa = deltaP.dotProduct(va);
+//            Vector scaledDP = va.scale(dPVa);
+//            if (deltaP.equals(scaledDP)) return null; // would cause zero vector
+//            dPerp = deltaP.subtract(scaledDP);
+//        } else {
+//            // if p0 == pa, we skip deltaP & dPerp usage and handle later in C
+//            dPerp = null;
+//        }
+//
+//        double vVa = v.dotProduct(va);
+//        Vector scaledV = va.scale(vVa);
+//        if (v.equals(scaledV)) return null; // v is parallel to va ⇒ vPerp is zero
+//
+//        Vector vPerp = v.subtract(scaledV);
+//
+//        double A = alignZero(vPerp.lengthSquared());
+//        double B = alignZero(2 * (dPerp != null ? vPerp.dotProduct(dPerp) : 0));
+//        double C = alignZero((dPerp != null ? dPerp.lengthSquared() : 0) - radius * radius);
+//
+//        double discriminant = alignZero(B * B - 4 * A * C);
+//        if (discriminant < 0 || isZero(A)) return null;
+//
+//        double sqrtDisc = Math.sqrt(discriminant);
+//        double t1 = alignZero((-B + sqrtDisc) / (2 * A));
+//        double t2 = alignZero((-B - sqrtDisc) / (2 * A));
+//
+//        List<Point> intersections = new LinkedList<>();
+//        if (t1 > 0) intersections.add(ray.getPoint(t1));
+//        if (t2 > 0 && !isZero(t2 - t1)) intersections.add(ray.getPoint(t2));
+//
+//        return intersections.isEmpty() ? null : intersections;
+//    }
 
 }
