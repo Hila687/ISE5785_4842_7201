@@ -10,6 +10,18 @@ class VectorTests {
     Vector v2 = new Vector(2, 3, 4);
 
     /**
+     * Test method for the predefined constant vectors AXIS_X, AXIS_Y, and AXIS_Z
+     * in the {@link primitives.Vector} class.
+     * Ensures that these vectors match the expected directions of the coordinate axes.
+     */
+    @Test
+    void testAxisConstants() {
+        assertEquals(new Vector(1,0,0), Vector.AXIS_X);
+        assertEquals(new Vector(0,1,0), Vector.AXIS_Y);
+        assertEquals(new Vector(0,0,1), Vector.AXIS_Z);
+    }
+
+    /**
      * Test method for {@link primitives.Vector#Vector(double, double, double)}.
      */
     @Test
@@ -159,7 +171,5 @@ class VectorTests {
                 () -> p1.subtract(p1),
                 "Subtracting identical points should throw exception (zero vector)");
     }
-
-
 
 }

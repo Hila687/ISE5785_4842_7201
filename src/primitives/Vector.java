@@ -7,6 +7,12 @@ package primitives;
  * cross product, normalization, and length calculation.
  */
 public class Vector extends Point {
+    /**
+     * Constant representing the zero vector (0, 0, 0).
+     */
+    public static final Vector AXIS_X = new Vector(1, 0, 0);
+    public static final Vector AXIS_Y = new Vector(0, 1, 0);
+    public static final Vector AXIS_Z = new Vector(0, 0, 1);
 
     /**
      * Constructs a vector from individual coordinates.

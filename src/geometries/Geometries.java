@@ -6,6 +6,9 @@ import primitives.Ray;
 import java.util.LinkedList;
 import java.util.List;
 
+/*
+    Geometries class represents a collection of intersectable geometries, using composite pattern.
+ */
 public class Geometries implements Intersectable{
     /**
      * A list of intersectable geometries.
