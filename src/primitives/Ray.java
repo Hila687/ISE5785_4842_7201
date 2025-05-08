@@ -1,5 +1,7 @@
 package primitives;
 
+import java.util.List;
+
 import static primitives.Util.isZero;
 
 /**
@@ -22,7 +24,7 @@ public class Ray {
      * Constructs a ray from a starting point and a direction vector.
      * The direction vector is automatically normalized.
      *
-     * @param head the starting point (origin) of the ray
+     * @param head      the starting point (origin) of the ray
      * @param direction the direction vector of the ray
      */
     public Ray(Point head, Vector direction) {
@@ -30,7 +32,7 @@ public class Ray {
         this.direction = direction.normalize();
     }
 
-    public Point getP0() {
+    public Point getHead() {
         return head;
     }
 
@@ -44,4 +46,28 @@ public class Ray {
         }
         return head.add(direction.scale(distance)); // head + t * direction
     }
+
+    @Override
+    public String toString() {
+        return "Ray{" +
+                "head=" + head +
+                ", direction=" + direction +
+                '}';
+    }
+    public Point findClosetPoint(List<Point> points) {
+        if(points == null) {
+            return null;
+        }
+        double minDistance = Double.MAX_VALUE;
+        Point closestPoint = points.get(0);
+        for (Point point : points) {
+            double distance = point.distanceSquared(head);
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestPoint = point;
+            }
+        }
+        return closestPoint;
+    }
+
 }

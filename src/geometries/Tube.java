@@ -4,10 +4,11 @@ import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
 
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
 
-import static primitives.Util.*;
+import static primitives.Util.alignZero;
+import static primitives.Util.isZero;
 
 /**
  * Represents an infinite tube in 3D space.
@@ -24,7 +25,7 @@ public class Tube extends RadialGeometry {
      * Constructs a tube with the specified radius and axis.
      *
      * @param radius the radius of the tube
-     * @param axis the central axis of the tube
+     * @param axis   the central axis of the tube
      */
     public Tube(double radius, Ray axis) {
         super(radius);
@@ -41,16 +42,17 @@ public class Tube extends RadialGeometry {
     @Override
     public Vector getNormal(Point p) {
         //projection of p-o on the ray
-        double t = p.subtract( axis.getP0()).dotProduct(axis.getDirection());// (p-po)*v(t=u*v)
-        return p.subtract(axis.getP0().add(axis.getDirection().scale(t))).normalize();// p-(po+u*v)
+        double t = p.subtract(axis.getHead()).dotProduct(axis.getDirection());// (p-po)*v(t=u*v)
+        return p.subtract(axis.getHead().add(axis.getDirection().scale(t))).normalize();// p-(po+u*v)
     }
+
     @Override
     public List<Point> findIntersections(Ray ray) {
 
-        Point P0 = ray.getP0();
+        Point P0 = ray.getHead();
         Vector v = ray.getDirection();
 
-        Point Pa = axis.getP0();
+        Point Pa = axis.getHead();
         Vector Va = axis.getDirection();
 
         //At^2 + Bt + C equation.

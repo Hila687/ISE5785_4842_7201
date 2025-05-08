@@ -1,9 +1,9 @@
-
 package renderer;
 
 import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
+import scene.Scene;
 
 import java.util.MissingResourceException;
 
@@ -14,6 +14,8 @@ import static primitives.Util.isZero;
  * It defines the camera's position, orientation, and view plane properties.
  * The class also provides a builder for constructing a camera with specific parameters.*/
 public class Camera implements Cloneable {
+    private static  int NX  ;
+    private static  int NY  ;
     private Vector vTo = null; // The forward direction vector of the camera
     private Vector vUp = null; // The upward direction vector of the camera
     private Vector vRight = null; // The rightward direction vector of the camera
@@ -22,6 +24,8 @@ public class Camera implements Cloneable {
     private double distance = 0.0; // The distance from the camera to the view plane
     private double width = 0.0; // The width of the view plane
     private double height = 0.0; // The height of the view plane
+    private RayTracerBase rayTracerBase;
+    private ImageWriter imageWriter;
 
     private Camera() {
     }
@@ -284,6 +288,25 @@ public class Camera implements Cloneable {
 
         public Builder setResolution(int nx, int ny) {
             //todo
+            camera.imageWriter = new ImageWriter(nx, ny);
+            camera.NX = nx;
+            camera.NY = ny;
+            return this;
+        }
+
+        public Camera renderImage() {
+            //todo
+            return this;
+        }
+
+        public Builder setRayTracer(Scene scene, RayTracerType rayTracerType) {
+            switch (rayTracerType){
+                case SIMPLE:
+                    camera.rayTracerBase = new SimpleRayTracer(scene);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid ray tracer type");
+            }
             return this;
         }
     }

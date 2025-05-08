@@ -9,14 +9,13 @@ import java.util.Objects;
 public class Point {
 
     /**
-     * The 3D coordinates of the point.
-     */
-    protected final Double3 xyz;
-
-    /**
      * Constant representing the origin point (0, 0, 0).
      */
     public static final Point ZERO = new Point(0, 0, 0);
+    /**
+     * The 3D coordinates of the point.
+     */
+    protected final Double3 xyz;
 
     /**
      * Constructs a point using a {@link Double3} object.

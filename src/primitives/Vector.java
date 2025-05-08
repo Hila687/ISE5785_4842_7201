@@ -24,7 +24,7 @@ public class Vector extends Point {
      * @throws IllegalArgumentException if the vector is the zero vector
      */
     public Vector(double x, double y, double z) {
-        this(new Double3(x,y,z));
+        this(new Double3(x, y, z));
     }
 
     /**
@@ -53,7 +53,6 @@ public class Vector extends Point {
         return (obj instanceof Vector vector)
                 && xyz.equals(vector.xyz);
     }
-
 
 
     /**

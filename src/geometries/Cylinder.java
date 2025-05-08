@@ -20,7 +20,7 @@ public class Cylinder extends Tube {
      * Constructs a cylinder with the specified radius, axis ray, and height.
      *
      * @param radius the radius of the cylinder
-     * @param axis the central axis of the cylinder, represented as a ray
+     * @param axis   the central axis of the cylinder, represented as a ray
      * @param height the finite height of the cylinder
      */
     public Cylinder(double radius, Ray axis, double height) {
@@ -40,7 +40,7 @@ public class Cylinder extends Tube {
         try {
             // Compute projection of vector (p - p0) on the cylinder axis direction
             // This gives the height coordinate (t) of point p along the axis
-            t = axis.getDirection().dotProduct(p.subtract(axis.getP0()));
+            t = axis.getDirection().dotProduct(p.subtract(axis.getHead()));
         } catch (IllegalArgumentException e) {
             // If p is exactly at axis.origin(), the subtraction creates a zero vector
             // This happens when p is the center of the bottom base

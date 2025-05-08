@@ -45,7 +45,7 @@ public class Sphere extends RadialGeometry {
     public List<Point> findIntersections(Ray ray) {
         //Vector v = center.subtract(ray.origin());
         Vector v = ray.getDirection();
-        Point p0 = ray.getP0();
+        Point p0 = ray.getHead();
 
         //if the ray starts at the center of the sphere
 
@@ -56,7 +56,7 @@ public class Sphere extends RadialGeometry {
         double tm = alignZero(v.dotProduct(u));
         double d2 = alignZero(u.lengthSquared() - tm * tm);
 
-        if (alignZero(d2 - radius * radius)>0)
+        if (alignZero(d2 - radius * radius) > 0)
             return null;
 
         double th = alignZero(Math.sqrt(radius * radius - d2));

@@ -6,7 +6,7 @@ import primitives.Vector;
 
 import java.util.List;
 
-import static primitives.Util.*;
+import static primitives.Util.alignZero;
 
 /**
  * Represents a triangle in 3D space.
@@ -28,6 +28,7 @@ public class Triangle extends Polygon {
 
     /**
      * returns intersection points of the triangle with a ray
+     *
      * @param ray the ray to intersect with the geometry
      * @return intersection points of the triangle with the ray
      */
@@ -38,7 +39,7 @@ public class Triangle extends Polygon {
             return null;
         }
 
-        Point p0 = ray.getP0();
+        Point p0 = ray.getHead();
         Vector dir = ray.getDirection();
 
         // Vectors from ray start to triangle vertices
