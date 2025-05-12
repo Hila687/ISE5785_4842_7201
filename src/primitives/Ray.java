@@ -54,8 +54,8 @@ public class Ray {
                 ", direction=" + direction +
                 '}';
     }
-    public Point findClosetPoint(List<Point> points) {
-        if(points == null) {
+    public Point findClosestPoint(List<Point> points) {
+        if(points == null|| points.isEmpty()) {
             return null;
         }
         double minDistance = Double.MAX_VALUE;

@@ -6,10 +6,10 @@ import scene.Scene;
 
 public abstract class RayTracerBase {
     protected final Scene scene;
+    public abstract Color traceRay(Ray ray);
 
     public RayTracerBase(Scene scene) {
         this.scene = scene;
     }
-    public abstract Color traceRay(Ray ray) {
-    }
+
 }

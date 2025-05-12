@@ -6,8 +6,13 @@ import org.junit.jupiter.api.Test;
 
 import geometries.*;
 import lighting.AmbientLight;
+import org.xml.sax.SAXException;
 import primitives.*;
 import scene.Scene;
+import scene.XMLParser;
+
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 
 /**
  * Test rendering a basic image
@@ -82,9 +87,8 @@ public class RenderTests {
 
    /** Test for XML based scene - for bonus */
    @Test
-   public void basicRenderXml() {
-      Scene scene = new Scene("Using XML");
-      // enter XML file name and parse from XML file into scene object instead of the
+   public void basicRenderXml() throws IOException, ParserConfigurationException, SAXException {
+      Scene scene = new XMLParser("src/renderer/renderTestTwoColors.xml").parse();      // enter XML file name and parse from XML file into scene object instead of the
       // new Scene above,
       // Use the code you added in appropriate packages
       // ...

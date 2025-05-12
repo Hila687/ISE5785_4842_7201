@@ -1,5 +1,6 @@
 package renderer;
 
+import primitives.Color;
 import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
@@ -14,8 +15,6 @@ import static primitives.Util.isZero;
  * It defines the camera's position, orientation, and view plane properties.
  * The class also provides a builder for constructing a camera with specific parameters.*/
 public class Camera implements Cloneable {
-    private static  int NX  ;
-    private static  int NY  ;
     private Vector vTo = null; // The forward direction vector of the camera
     private Vector vUp = null; // The upward direction vector of the camera
     private Vector vRight = null; // The rightward direction vector of the camera
@@ -26,6 +25,8 @@ public class Camera implements Cloneable {
     private double height = 0.0; // The height of the view plane
     private RayTracerBase rayTracerBase;
     private ImageWriter imageWriter;
+    private static int nX = 1 ;
+    private static int nY = 1 ;
 
     private Camera() {
     }
@@ -97,6 +98,55 @@ public class Camera implements Cloneable {
 
     public double getHeight() {
         return height;
+    }
+
+    /* Sets the number of pixels in the x-axis and y-axis of the view plane.
+     * @param nX The number of pixels in the x-axis.
+     * @param nY The number of pixels in the y-axis.
+     */
+    public Camera printGrid(int interval, Color color){
+        // Draw a grid on the view plane
+        for (int i = 0; i < nY; i++) {
+            for (int j = 0; j < nX; j++) {
+                if (i % interval == 0 || j % interval == 0) {
+                    imageWriter.writePixel(j, i, color);
+                }
+            }
+        }
+        return this;
+    }
+
+    /* Writes the image to a file.
+     * @param fileName The name of the file to write the image to.
+     * @return The Camera instance for method chaining.
+     */
+    public Camera writeToImage(String fileName) {
+        // Write the image to a file
+        imageWriter.writeToImage(fileName);
+        return this;
+    }
+
+
+    /* Renders the image by casting rays through each pixel in the view plane.
+     * @return The Camera instance for method chaining.
+     */
+    public Camera renderImage() {
+        // Render the image by casting rays through each pixel in the view plane
+        for (int i = 0; i < nY; i++) {
+            for (int j = 0; j < nX; j++) {
+                castRay(j, i);
+            }
+        }
+        return this;
+    }
+
+    /* Renders the image by casting rays through each pixel in the view plane.
+     * @return The Camera instance for method chaining.
+     */
+    private void castRay(int ix, int iy) {
+        Ray ray = constructRay(nX, nY, ix, iy);
+        Color color = rayTracerBase.traceRay(ray);
+        imageWriter.writePixel(ix, iy, color);
     }
 
     /* The Builder class is used to construct a Camera object with specific parameters.*/
@@ -271,6 +321,19 @@ public class Camera implements Cloneable {
             // Calculate the center point of the view plane
             camera.pcenter = camera.p0.add(camera.vTo.scale(camera.distance));
             target = null;
+
+            // Resolution nX and nY are positive integers
+            if (camera.nX <= 0 || camera.nY <= 0) {
+                throw new IllegalStateException("Resolution nX and nY must be positive integers");
+            }
+
+            // Initialize the image writer
+            camera.imageWriter = new ImageWriter(camera.nX, camera.nY);
+
+            // If the ray tracer is not set, use a default value
+            if (camera.rayTracerBase == null) {
+                camera.rayTracerBase = new SimpleRayTracer(new Scene(null));
+            }
         }
 
         /* Checks if two vectors are parallel.
@@ -289,15 +352,11 @@ public class Camera implements Cloneable {
         public Builder setResolution(int nx, int ny) {
             //todo
             camera.imageWriter = new ImageWriter(nx, ny);
-            camera.NX = nx;
-            camera.NY = ny;
+            camera.nX = nx;
+            camera.nY = ny;
             return this;
         }
 
-        public Camera renderImage() {
-            //todo
-            return this;
-        }
 
         public Builder setRayTracer(Scene scene, RayTracerType rayTracerType) {
             switch (rayTracerType){
