@@ -19,7 +19,7 @@ import java.util.Arrays;
 /**
  * XMLParser class to parse XML files and construct Scene objects.
  *
- * @author Bracha and Tamar
+ * @author Hila and Hila
  */
 public class XMLParser {
     /**

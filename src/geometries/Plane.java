@@ -10,23 +10,26 @@ import static primitives.Util.alignZero;
 import static primitives.Util.isZero;
 
 /**
- * Represents an infinite plane in 3D space, defined by a point and a normal vector.
+ * Class Plane represents an infinite plane in 3D space, defined by a point and a normal vector.
+ * A plane can be constructed using a point and a normal, or three non-collinear points in space.
+ * The class extends {@link Geometry}, and implements the method to get the normal vector
+ * as well as intersection logic with a {@link Ray}.
  */
 public class Plane extends Geometry {
 
     /**
-     * A point on the plane.
+     * A reference point on the plane (not necessarily unique).
      */
     private final Point q0;
 
     /**
-     * The normal vector to the plane.
+     * The normal vector of the plane. It is normalized during construction.
      */
     private final Vector normal;
 
     /**
      * Constructs a plane from three non-collinear points in space.
-     * <p><b>Note:</b> This constructor is currently incomplete – it sets the normal to null.</p>
+     * The normal is computed as the normalized cross-product of the vectors defined by the points.
      *
      * @param p1 first point on the plane
      * @param p2 second point on the plane
@@ -35,13 +38,14 @@ public class Plane extends Geometry {
     public Plane(Point p1, Point p2, Point p3) {
         Vector v1 = p2.subtract(p1);
         Vector v2 = p3.subtract(p1);
-        Vector normal = v1.crossProduct(v2).normalize();
+        Vector normal = v1.crossProduct(v2).normalize(); // Normal perpendicular to the plane passing through the three points
         this.normal = normal;
         this.q0 = p1;
     }
 
     /**
      * Constructs a plane from a point and a normal vector.
+     * The normal vector is normalized to ensure consistency.
      *
      * @param q0     a point on the plane
      * @param normal the normal vector to the plane (will be normalized)
@@ -52,16 +56,25 @@ public class Plane extends Geometry {
     }
 
     /**
-     * Returns the normal vector of the plane.
+     * Returns the normal vector to the plane.
+     * Since the normal is constant for the entire plane, the input point is ignored.
      *
-     * @param p1 the point on the plane (ignored, since the normal is constant for a plane)
-     * @return the normal vector of the plane
+     * @param p1 any point on the plane (ignored)
+     * @return the normalized normal vector of the plane
      */
     @Override
     public Vector getNormal(Point p1) {
         return normal;
     }
 
+    /**
+     * Finds the intersection point of a given ray with the plane, if it exists.
+     * The method calculates the parameter t for the intersection point using the plane equation,
+     * and returns the intersection point only if t > 0 (i.e., the intersection is in front of the ray's head).
+     *
+     * @param ray the ray to intersect with the plane
+     * @return a list containing the intersection point, or {@code null} if there is no intersection
+     */
     @Override
     public List<Point> findIntersections(Ray ray) {
         Point p0 = ray.getHead();
@@ -69,28 +82,31 @@ public class Plane extends Geometry {
 
         Vector q0ToP0;
         try {
-            q0ToP0 = q0.subtract(p0); // Q0 - P0
+            q0ToP0 = q0.subtract(p0); // Vector from ray origin to plane point (Q0 - P0)
         } catch (IllegalArgumentException e) {
-            // Ray starts exactly at Q0
+            // Special case: the ray starts exactly on the plane reference point
             return null;
         }
 
+        // Calculate numerator and denominator of the plane intersection formula
         double numerator = alignZero(normal.dotProduct(q0ToP0));
         double denominator = alignZero(normal.dotProduct(dir));
 
-        // Ray is parallel to the plane (no intersection)
+        // If denominator is zero → the ray is parallel to the plane
         if (isZero(denominator)) {
             return null;
         }
 
+        // Calculate t (scalar for ray direction)
         double t = alignZero(numerator / denominator);
 
+        // If t <= 0 → the intersection is behind the ray's origin or exactly at it
         if (t <= 0) {
             return null;
         }
 
+        // Calculate the actual intersection point on the ray
         Point intersection = ray.getPoint(t);
         return List.of(intersection);
     }
-
 }

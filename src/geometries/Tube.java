@@ -12,12 +12,13 @@ import static primitives.Util.isZero;
 
 /**
  * Represents an infinite tube in 3D space.
- * A tube is defined by a central axis (as a ray) and a constant radius.
+ * A tube is defined by a central axis (represented as a {@link Ray}) and a constant radius.
+ * Inherits the radius from {@link RadialGeometry}.
  */
 public class Tube extends RadialGeometry {
 
     /**
-     * The central axis of the tube.
+     * The central axis ray of the tube.
      */
     protected final Ray axis;
 
@@ -34,96 +35,97 @@ public class Tube extends RadialGeometry {
 
     /**
      * Returns the normal vector to the tube at the specified point on its surface.
-     * <p><b>Note:</b> This method is currently not implemented and returns {@code null}.</p>
+     * The normal is calculated as the vector from the axis to the point, perpendicular to the axis.
      *
      * @param p the point on the surface of the tube
-     * @return the normal vector at the given point (currently {@code null})
+     * @return the normalized normal vector to the tube at the given point
      */
     @Override
     public Vector getNormal(Point p) {
-        //projection of p-o on the ray
-        double t = p.subtract(axis.getHead()).dotProduct(axis.getDirection());// (p-po)*v(t=u*v)
-        return p.subtract(axis.getHead().add(axis.getDirection().scale(t))).normalize();// p-(po+u*v)
+        // Compute projection of vector (p - p0) onto axis direction
+        double t = p.subtract(axis.getHead()).dotProduct(axis.getDirection());
+
+        // Compute point on axis: p0 + t * v
+        Point o = axis.getHead().add(axis.getDirection().scale(t));
+
+        // Return the normalized vector from axis to point
+        return p.subtract(o).normalize();
     }
 
+    /**
+     * Finds the intersection points between a ray and the tube.
+     * Uses the analytical solution of a quadratic equation derived from the tube's geometry.
+     *
+     * @param ray the ray to intersect with the tube
+     * @return a list of intersection points, or {@code null} if there are none
+     */
     @Override
     public List<Point> findIntersections(Ray ray) {
 
-        Point P0 = ray.getHead();
-        Vector v = ray.getDirection();
+        Point P0 = ray.getHead();           // Ray origin
+        Vector v = ray.getDirection();      // Ray direction
 
-        Point Pa = axis.getHead();
-        Vector Va = axis.getDirection();
+        Point Pa = axis.getHead();          // Tube axis origin
+        Vector Va = axis.getDirection();    // Tube axis direction
 
-        //At^2 + Bt + C equation.
         double A, B, C;
 
-        //(v,u) = v dot product u
-
-        //calculate the vector: V-(V,Va)Va
+        // Compute the vector: v - (v ⋅ Va) * Va
         Vector VecA = v;
         double Vva = v.dotProduct(Va);
 
         try {
             if (!isZero(Vva))
-                VecA = v.subtract(Va.scale(Vva));
+                VecA = v.subtract(Va.scale(Vva)); // Vector component perpendicular to axis
 
-            //A = (V-(V,Va)Va)^2
+            // A = ||v - (v ⋅ Va)Va||^2
             A = VecA.lengthSquared();
-        }
-
-        //if A = 0 return null (there are no intersections)
-        catch (IllegalArgumentException ex) { // the ray is parallel to the axisRay
+        } catch (IllegalArgumentException ex) {
+            // v parallel to Va → A = 0 → no intersections
             return null;
         }
 
-        //if A != 0 continue to calculate B and C
         try {
-
-            //calculate deltaP (delP) vector, P-Pa
+            // Compute deltaP = P0 - Pa
             Vector DeltaP = P0.subtract(Pa);
 
-            //The vector: delP - (delP,Va)Va
+            // Compute: DeltaP - (DeltaP ⋅ Va) * Va
             Vector DeltaPMinusDeltaPVaVa = DeltaP;
             double DeltaPVa = DeltaP.dotProduct(Va);
 
             if (!isZero(DeltaPVa))
                 DeltaPMinusDeltaPVaVa = DeltaP.subtract(Va.scale(DeltaPVa));
 
-            //B = 2(V - (V,Va)Va , delP - (delP,Va)Va)
+            // B = 2 * [(v - (v ⋅ Va)Va) ⋅ (DeltaP - (DeltaP ⋅ Va)Va)]
             B = 2 * (VecA.dotProduct(DeltaPMinusDeltaPVaVa));
 
-            //C = (delP - (delP,Va)Va)^2 - r^2
+            // C = ||DeltaP - (DeltaP ⋅ Va)Va||^2 - r^2
             C = DeltaPMinusDeltaPVaVa.lengthSquared() - radius * radius;
-        }
-        //in case delP = 0, or delP - (delP,Va)Va = (0, 0, 0)
-        catch (IllegalArgumentException ex) {
+
+        } catch (IllegalArgumentException ex) {
+            // Case: DeltaP is zero or colinear → fallback values
             B = 0;
             C = -1 * radius * radius;
         }
 
-        //solving At^2 + Bt + C = 0
+        // Solve the quadratic equation: At^2 + Bt + C = 0
+        double Disc = alignZero(B * B - 4 * A * C); // Discriminant
 
-        //the discrimation, B^2 - 4AC
-        double Disc = alignZero(B * B - 4 * A * C);
-
-        //no solutions for the equation. disc = 0 means that the ray parallel to the tube
         if (Disc <= 0)
-            return null;
+            return null; // No real solutions
 
-        //the solutions for the equation
         double t1, t2;
 
-        t1 = alignZero(-B + Math.sqrt(Disc)) / (2 * A);
-        t2 = alignZero(-B - Math.sqrt(Disc)) / (2 * A);
+        // Compute the two roots
+        t1 = alignZero((-B + Math.sqrt(Disc)) / (2 * A));
+        t2 = alignZero((-B - Math.sqrt(Disc)) / (2 * A));
 
-        //taking all positive solutions
         List<Point> intersections = new LinkedList<>();
+
+        // Add valid (positive) intersection points
         if (t1 > 0) intersections.add(ray.getPoint(t1));
-        if (t2 > 0 && !isZero(t2 - t1)) intersections.add(ray.getPoint(t2));
+        if (t2 > 0 && !isZero(t2 - t1)) intersections.add(ray.getPoint(t2)); // Avoid duplicates
 
         return intersections.isEmpty() ? null : intersections;
-
     }
-
 }
