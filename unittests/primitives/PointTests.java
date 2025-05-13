@@ -3,12 +3,24 @@ package primitives;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Unit tests for primitives.Point class.
+ *
+ * @author Hila Rosental & Hila Miller
+ */
 class PointTests {
-    private static final double ACCURACY = 1e-10;
+    /** Test point #1 */
     Point P1 = new Point(1, 2, 3);
+
+    /** Test point #2 */
     Point P2 = new Point(2, 4, 6);
+
+    /** Test vector for basic operations */
     Vector V1 = new Vector(1, 2, 3);
 
+    /** Acceptable floating point error for assertions */
+    private static final double ACCURACY = 1e-10;
 
     /**
      * Test method for {@link primitives.Point#subtract(primitives.Point)}.

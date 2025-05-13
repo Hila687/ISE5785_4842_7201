@@ -6,8 +6,13 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit tests for {@link primitives.Ray} class.
+ *
+ * @author Hila Rosental & Hila Miller
+ */
 class RayTest {
-    /*
+    /**
      * Test method for {@link primitives.Ray#findClosestPoint(List)}.
      */
     @Test

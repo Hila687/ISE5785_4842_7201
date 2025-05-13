@@ -4,9 +4,24 @@ package primitives;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Unit tests for the {@link primitives.Vector} class.
+ * <p>
+ * This class contains various test cases to validate the functionality of the Vector class,
+ * including its methods and properties.
+ * </p>
+ *
+ * @author Hila Rosental & Hila Miller
+ */
 class VectorTests {
+    /** Acceptable delta used for comparing floating-point values in tests */
     private static final double ACCURACY = 1e-10;
+
+    /** A test vector for use in unit tests */
     Vector v1 = new Vector(1, 2, 3);
+
+    /** Another test vector for use in unit tests */
     Vector v2 = new Vector(2, 3, 4);
 
     /**
