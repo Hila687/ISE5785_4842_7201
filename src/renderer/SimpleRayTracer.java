@@ -7,6 +7,10 @@ import scene.Scene;
 
 import java.util.List;
 
+/**
+ * SimpleRayTracer is a basic implementation of a ray tracer that renders a scene.
+ * It extends the RayTracerBase class and provides functionality to trace rays through the scene.
+ */
 public class SimpleRayTracer extends RayTracerBase {
     /**
      * Constructs a SimpleRayTracer with the specified scene.
