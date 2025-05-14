@@ -70,6 +70,15 @@ public class Ray {
                 '}';
     }
 
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Ray other)) return false;
+        return head.equals(other.head) && direction.equals(other.direction);
+    }
+
+
     /**
      * Finds the closest point to the head of the ray from a list of points.
      * If the list is null or empty, returns null.
