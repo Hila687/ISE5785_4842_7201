@@ -27,15 +27,7 @@ public class Triangle extends Polygon {
         super(p1, p2, p3);
     }
 
-    /**
-     * Finds the intersection points between the triangle and a given ray.
-     * First checks intersection with the triangle's plane.
-     * Then verifies if the intersection point lies within the triangle boundaries,
-     * using edge normal vectors and dot product signs.
-     *
-     * @param ray the ray to intersect with the geometry
-     * @return a list of intersection points (at most one), or {@code null} if no intersection occurs
-     */
+
     @Override
     public List<Point> findIntersections(Ray ray) {
         // First, check intersection with the triangle's supporting plane

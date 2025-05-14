@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class CylinderTests {
 
+
     private static final double ACCURACY = 1e-10;
 
     // Cylinder with axis from (0,0,0) in direction (0,0,1), radius 1, height 2

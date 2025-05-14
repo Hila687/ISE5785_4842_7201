@@ -1,27 +1,37 @@
 package primitives;
 
+
 /**
- * Represents a vector in 3D space.
- * Inherits from {@link Point} but restricts the value to be non-zero.
- * Provides common vector operations such as addition, scaling, dot product,
- * cross product, normalization, and length calculation.
+ * Represents a 3D vector in space, defined by its direction and magnitude.
+ * Inherits coordinate storage from {@link Point} (internally a {@link Double3}),
+ * but semantically a vector represents direction and not a location.
  */
 public class Vector extends Point {
+
     /**
-     * Constant representing the zero vector (0, 0, 0).
+     * Constant unit vector in the X direction (1, 0, 0).
      */
     public static final Vector AXIS_X = new Vector(1, 0, 0);
+
+    /**
+     * Constant unit vector in the Y direction (0, 1, 0).
+     */
     public static final Vector AXIS_Y = new Vector(0, 1, 0);
+
+    /**
+     * Constant unit vector in the Z direction (0, 0, 1).
+     */
     public static final Vector AXIS_Z = new Vector(0, 0, 1);
 
     /**
-     * Constructs a vector from individual coordinates.
-     * Throws an exception if the zero vector is provided.
+     * Constructs a vector from individual x, y, z components.
+     * Throws an exception if the zero vector (0, 0, 0) is passed,
+     * since a vector must have direction and magnitude.
      *
-     * @param x the X coordinate
-     * @param y the Y coordinate
-     * @param z the Z coordinate
-     * @throws IllegalArgumentException if the vector is the zero vector
+     * @param x the X component
+     * @param y the Y component
+     * @param z the Z component
+     * @throws IllegalArgumentException if all components are zero
      */
     public Vector(double x, double y, double z) {
         this(new Double3(x, y, z));
@@ -29,9 +39,9 @@ public class Vector extends Point {
 
     /**
      * Constructs a vector from a {@link Double3} object.
-     * Throws an exception if the zero vector is provided.
+     * Throws an exception if the vector is the zero vector.
      *
-     * @param xyz the 3D values of the vector
+     * @param xyz the vector components as a {@link Double3}
      * @throws IllegalArgumentException if the vector is the zero vector
      */
     public Vector(Double3 xyz) {
@@ -41,33 +51,22 @@ public class Vector extends Point {
         }
     }
 
-    /**
-     * Checks if this vector is equal to another object.
-     *
-     * @param obj the object to compare to
-     * @return {@code true} if both are vectors with equal components
-     */
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        return (obj instanceof Vector vector)
-                && xyz.equals(vector.xyz);
+        return (obj instanceof Vector vector) && xyz.equals(vector.xyz);
     }
 
 
-    /**
-     * Returns a hash code value for the vector.
-     *
-     * @return the hash code
-     */
     @Override
     public int hashCode() {
         return super.hashCode();
     }
 
     /**
-     * Returns the squared length (magnitude) of the vector.
-     * More efficient than {@link #length()} since it avoids computing a square root.
+     * Computes the squared length (magnitude) of the vector.
+     * Useful for comparisons and efficiency (avoids square root).
      *
      * @return the squared length of the vector
      */
@@ -78,7 +77,7 @@ public class Vector extends Point {
     }
 
     /**
-     * Returns the length (magnitude) of the vector.
+     * Computes the Euclidean length (magnitude) of the vector.
      *
      * @return the length of the vector
      */
@@ -87,9 +86,10 @@ public class Vector extends Point {
     }
 
     /**
-     * Scales the vector by a scalar value.
+     * Returns a new vector scaled by the given scalar.
+     * The direction is preserved and the length is multiplied by the scalar.
      *
-     * @param scalar the scalar to multiply with
+     * @param scalar the scaling factor
      * @return a new scaled vector
      */
     public Vector scale(double scalar) {
@@ -97,19 +97,19 @@ public class Vector extends Point {
     }
 
     /**
-     * Adds another vector to this vector.
+     * Adds another vector to this vector and returns the resulting vector.
      *
      * @param other the vector to add
-     * @return the resulting vector
+     * @return a new vector representing the sum
      */
     public Vector add(Vector other) {
         return new Vector(xyz.add(other.xyz));
     }
 
     /**
-     * Normalizes the vector (makes it of length 1).
+     * Normalizes this vector to a unit vector (length = 1).
      *
-     * @return the normalized vector
+     * @return a new normalized vector
      */
     public Vector normalize() {
         double length = length();
@@ -117,10 +117,12 @@ public class Vector extends Point {
     }
 
     /**
-     * Calculates the dot product of this vector and another.
+     * Computes the dot product of this vector with another.
+     * The result is a scalar representing the cosine of the angle between them,
+     * scaled by their magnitudes.
      *
      * @param other the other vector
-     * @return the dot product
+     * @return the dot product (scalar)
      */
     public double dotProduct(Vector other) {
         return xyz.d1() * other.xyz.d1()
@@ -129,10 +131,11 @@ public class Vector extends Point {
     }
 
     /**
-     * Calculates the cross product of this vector and another.
+     * Computes the cross product of this vector with another.
+     * The result is a new vector that is perpendicular to both inputs.
      *
      * @param other the other vector
-     * @return the resulting vector perpendicular to both
+     * @return a new vector perpendicular to this and the other vector
      */
     public Vector crossProduct(Vector other) {
         return new Vector(
@@ -142,3 +145,5 @@ public class Vector extends Point {
         );
     }
 }
+
+

@@ -30,26 +30,13 @@ public class Sphere extends RadialGeometry {
         this.center = center;
     }
 
-    /**
-     * Returns the normal vector to the sphere at the specified point on its surface.
-     * The normal is the vector from the center to the point, normalized.
-     *
-     * @param p the point on the surface of the sphere
-     * @return the normal vector at the given point
-     */
+
     @Override
     public Vector getNormal(Point p) {
         return p.subtract(center).normalize();
     }
 
-    /**
-     * Finds the intersection points of a given ray with the sphere.
-     * Uses geometric projection to calculate the points along the ray direction
-     * where it intersects the sphere surface.
-     *
-     * @param ray the ray to intersect with the sphere
-     * @return a list of intersection points, or {@code null} if there are none
-     */
+
     @Override
     public List<Point> findIntersections(Ray ray) {
         Vector v = ray.getDirection();

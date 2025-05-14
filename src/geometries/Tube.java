@@ -33,13 +33,7 @@ public class Tube extends RadialGeometry {
         this.axis = axis;
     }
 
-    /**
-     * Returns the normal vector to the tube at the specified point on its surface.
-     * The normal is calculated as the vector from the axis to the point, perpendicular to the axis.
-     *
-     * @param p the point on the surface of the tube
-     * @return the normalized normal vector to the tube at the given point
-     */
+
     @Override
     public Vector getNormal(Point p) {
         // Compute projection of vector (p - p0) onto axis direction

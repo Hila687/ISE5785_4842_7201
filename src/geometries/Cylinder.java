@@ -29,14 +29,7 @@ public class Cylinder extends Tube {
         this.height = height;
     }
 
-    /**
-     * Returns the normal vector to the cylinder at a given point.
-     * If the point lies on one of the bases, returns the axis direction or its opposite.
-     * Otherwise, returns the normal to the curved side surface, as in {@link Tube}.
-     *
-     * @param p the point on the surface of the cylinder
-     * @return the normal vector to the cylinder at the given point
-     */
+
     @Override
     public Vector getNormal(Point p) {
         double t;
@@ -67,13 +60,7 @@ public class Cylinder extends Tube {
         return super.getNormal(p);
     }
 
-    /**
-     * Placeholder method for finding intersections of a ray with the cylinder.
-     * Not implemented in this stage.
-     *
-     * @param ray the ray to intersect with the cylinder
-     * @return list of intersection points, or null if none
-     */
+
     @Override
     public List<Point> findIntersections(Ray ray) {
         return null;

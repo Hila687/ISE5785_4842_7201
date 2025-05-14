@@ -55,32 +55,20 @@ public class Plane extends Geometry {
         this.normal = normal.normalize();
     }
 
-    /**
-     * Returns the normal vector to the plane.
-     * Since the normal is constant for the entire plane, the input point is ignored.
-     *
-     * @param p1 any point on the plane (ignored)
-     * @return the normalized normal vector of the plane
-     */
+
     @Override
     public Vector getNormal(Point p1) {
         return normal;
     }
 
-    /**
-     * Finds the intersection point of a given ray with the plane, if it exists.
-     * The method calculates the parameter t for the intersection point using the plane equation,
-     * and returns the intersection point only if t > 0 (i.e., the intersection is in front of the ray's head).
-     *
-     * @param ray the ray to intersect with the plane
-     * @return a list containing the intersection point, or {@code null} if there is no intersection
-     */
+
     @Override
     public List<Point> findIntersections(Ray ray) {
         Point p0 = ray.getHead();
         Vector dir = ray.getDirection();
 
         Vector q0ToP0;
+
         try {
             q0ToP0 = q0.subtract(p0); // Vector from ray origin to plane point (Q0 - P0)
         } catch (IllegalArgumentException e) {

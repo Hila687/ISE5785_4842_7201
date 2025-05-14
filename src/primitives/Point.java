@@ -12,6 +12,7 @@ public class Point {
      * Constant representing the origin point (0, 0, 0).
      */
     public static final Point ZERO = new Point(0, 0, 0);
+
     /**
      * The 3D coordinates of the point.
      */
@@ -82,22 +83,13 @@ public class Point {
         return Math.sqrt(distanceSquared(p1));
     }
 
-    /**
-     * Returns a string representation of the point.
-     *
-     * @return a string in the format of the underlying {@link Double3}
-     */
+
     @Override
     public String toString() {
         return "" + xyz;
     }
 
-    /**
-     * Indicates whether some other object is "equal to" this one.
-     *
-     * @param obj the reference object with which to compare
-     * @return {@code true} if this point is equal to the other object
-     */
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -105,11 +97,7 @@ public class Point {
                 && Objects.equals(xyz, other.xyz);
     }
 
-    /**
-     * Returns a hash code value for the point.
-     *
-     * @return the hash code based on the {@link Double3} field
-     */
+
     @Override
     public int hashCode() {
         return xyz.hashCode();
