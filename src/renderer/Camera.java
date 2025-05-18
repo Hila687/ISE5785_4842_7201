@@ -50,10 +50,12 @@ public class Camera implements Cloneable {
     private ImageWriter imageWriter;
 
     /** The number of pixels in the x-axis */
-    private static int nX = 1;
+    private int nX = 1;
 
     /** The number of pixels in the y-axis */
-    private static int nY = 1;
+    private int nY = 1;
+
+
 
     /**
      * Private constructor to enforce the use of the Builder class.
@@ -235,8 +237,21 @@ public class Camera implements Cloneable {
      * This builder follows the Builder design pattern.
      */
     public static class Builder {
+        /**
+         * The camera object being built.
+         */
         private final Camera camera = new Camera();
-        private Point target = null; // The target point the camera is looking at
+
+        /**
+         * The point where the camera is looking at.
+         */
+        private Point target = null;
+
+        /**
+         * The error message for zero values.
+         */
+        private final String zeroErr = " cannot be zero";
+
 
         /**
          * Sets the direction vectors of the camera.
@@ -244,58 +259,94 @@ public class Camera implements Cloneable {
          * @param vTo the forward direction vector
          * @param vUp the upward direction vector
          * @return the Builder instance
-         * @throws IllegalArgumentException if the direction vectors are not orthogonal
+         * @throws IllegalArgumentException if vectors are null, zero, or not orthogonal
          */
         public Builder setDirection(Vector vTo, Vector vUp) {
-            // Check orthogonality of vTo and vUp
-            if (!isZero(vTo.dotProduct(vUp))) {
-                throw new IllegalArgumentException("Direction vectors must be orthogonal");
+            if (vTo == null || vUp == null) {
+                throw new IllegalArgumentException("vTo and vUp must not be null");
+            }
+            if (isZero(vTo.lengthSquared()) || isZero(vUp.lengthSquared())) {
+                throw new IllegalArgumentException("vTo" + zeroErr + " and vUp" + zeroErr);
+            }
+            if (!isOrthogonal(vTo, vUp)) {
+                throw new IllegalArgumentException("vTo and vUp must be orthogonal");
             }
 
-            // Normalize and assign vectors
-            this.target = null; // target is unused in this case
-            camera.vUp = vUp.normalize();
+
+            this.target = null;
             camera.vTo = vTo.normalize();
-            camera.vRight = camera.vTo.crossProduct(camera.vUp);
+            camera.vUp = vUp.normalize();
+            camera.vRight = camera.vTo.crossProduct(camera.vUp).normalize();
             return this;
         }
 
         /**
-         * Sets the target point the camera is looking at.
+         * Sets the direction of the camera using a target point.
+         * Assumes Y-axis as default upward direction if possible.
          *
          * @param target the target point
          * @return the Builder instance
-         * @throws IllegalArgumentException if the target equals the camera's position
+         * @throws IllegalArgumentException if target is null, equals to camera position, or aligned with Y-axis
          */
         public Builder setDirection(Point target) {
-            if (target != null && target.equals(camera.p0)) {
-                throw new IllegalArgumentException("Camera cannot be at the target point");
+            if (target == null) {
+                throw new IllegalArgumentException("Target point must not be null");
             }
+            if (camera.p0 == null) {
+                throw new IllegalStateException("Camera location (p0) must be set before setting direction by target");
+            }
+
+            if (target.equals(Point.ZERO)) {
+                throw new IllegalArgumentException("target" + zeroErr);
+            }
+
+            if (target.equals(camera.p0)) {
+                throw new IllegalArgumentException("Camera cannot be located at the target point");
+            }
+
+            // Check if the target is aligned with the Y-axis
+            if (isParallel(target.subtract(camera.p0).normalize(), Vector.AXIS_Y)) {
+                throw new IllegalArgumentException("Cannot set direction aligned with Y-axis without specifying an up vector");
+            }
+
             this.target = target;
-            camera.vTo = null;
-            camera.vUp = null;
-            camera.vRight = null;
+            //vUp, vRight, and vTo will be set in the validate method
             return this;
         }
 
         /**
-         * Sets the target point and upward direction vector for the camera.
+         * Sets the direction using a target point and upward vector.
          *
-         * @param target the point the camera is directed at
-         * @param vUp    the upward direction vector
+         * @param target the target point
+         * @param vUp the upward direction vector
          * @return the Builder instance
-         * @throws IllegalArgumentException if the target equals the camera's position
+         * @throws IllegalArgumentException if inputs are invalid or vectors are parallel
          */
         public Builder setDirection(Point target, Vector vUp) {
-            if (target != null && target.equals(camera.p0)) {
-                throw new IllegalArgumentException("Camera cannot be at the target point");
+            if (target == null || vUp == null) {
+                throw new IllegalArgumentException("Target and vUp must not be null");
             }
+            if (camera.p0 == null) {
+                throw new IllegalStateException("Camera location (p0) must be set before setting direction");
+            }
+            if (target.equals(camera.p0)) {
+                throw new IllegalArgumentException("Camera cannot be located at the target point");
+            }
+            if (isZero(vUp.lengthSquared())) {
+                throw new IllegalArgumentException("vUp must be a non-zero vector");
+            }
+
+            if (isParallel(target.subtract(camera.p0).normalize(), vUp)) {
+                throw new IllegalArgumentException("vTo and vUp cannot be parallel");
+            }
+
             this.target = target;
             camera.vUp = vUp.normalize();
-            camera.vTo = null;
-            camera.vRight = null;
+            //vTo and vRight will be set in the validate method
             return this;
         }
+
+
 
         /**
          * Sets the position of the camera.
@@ -365,10 +416,17 @@ public class Camera implements Cloneable {
          * @throws MissingResourceException if required fields are missing
          * @throws IllegalStateException    if resolution is invalid
          */
-        private void validate(Camera camera) throws MissingResourceException {
+        private void validate(Camera camera) {
+            // Constants for error messages
+            String className = "Camera";
+            String msg = "Missing render data: ";
+
             // Check view plane dimensions
-            if (camera.width == 0 || camera.height == 0) {
-                throw new MissingResourceException("View plane size is not set", "Camera", "width or height");
+            if (isZero(camera.width) || isZero(camera.height)) {
+                throw new MissingResourceException(
+                        msg + "View plane size is not set",
+                        className,
+                        "width or height" + zeroErr);
             }
 
             // Default camera location if not set
@@ -378,14 +436,15 @@ public class Camera implements Cloneable {
 
             // Check view plane distance
             if (isZero(camera.distance)) {
-                throw new MissingResourceException("Distance to view plane is not set", "Camera", "distance");
+                throw new MissingResourceException(
+                        msg + "Distance to view plane is not set",
+                        className,
+                        "distance" + zeroErr);
             }
 
             // If target point was given, compute vTo from position to target
             if (target != null) {
                 camera.vTo = target.subtract(camera.p0).normalize();
-
-                // If vUp is not set or parallel to vTo, pick a default up direction
                 if (camera.vUp == null || isParallel(camera.vTo, camera.vUp)) {
                     camera.vUp = isParallel(camera.vTo, Vector.AXIS_Y) ? Vector.AXIS_X : Vector.AXIS_Y;
                 }
@@ -402,9 +461,23 @@ public class Camera implements Cloneable {
             }
 
             // Ensure vUp and vTo are orthogonal
-            if (!isZero(camera.vTo.dotProduct(camera.vUp))) {
-                // Orthogonalize vUp using double cross product
+            if (!isOrthogonal(camera.vTo, camera.vUp)) {
                 camera.vUp = camera.vTo.crossProduct(camera.vUp).crossProduct(camera.vTo).normalize();
+            }
+
+            // Resolution check
+            if (camera.nX <= 0) {
+                throw new MissingResourceException(
+                        msg + "nX is not set",
+                        className,
+                        "Number of pixels in x direction must be positive");
+            }
+
+            if (camera.nY <= 0) {
+                throw new MissingResourceException(
+                        msg + "nY is not set",
+                        className,
+                        "Number of pixels in y direction must be positive");
             }
 
             // Calculate vRight from vTo and vUp
@@ -416,17 +489,14 @@ public class Camera implements Cloneable {
             // Clear target after use
             target = null;
 
-            // Resolution check
-            if (camera.nX <= 0 || camera.nY <= 0) {
-                throw new IllegalStateException("Resolution nX and nY must be positive integers");
-            }
-
-            // Initialize image writer
-            camera.imageWriter = new ImageWriter(camera.nX, camera.nY);
-
             // Use default ray tracer if not set
             if (camera.rayTracerBase == null) {
                 camera.rayTracerBase = new SimpleRayTracer(new Scene(null));
+            }
+
+            // Initialize image writer
+            if (camera.imageWriter == null) {
+                camera.imageWriter = new ImageWriter(camera.nX, camera.nY);
             }
         }
 
@@ -445,6 +515,13 @@ public class Camera implements Cloneable {
             // Check if dot product is close to 1
             double dot = Math.abs(n1.dotProduct(n2));
             return isZero(dot - 1);
+        }
+
+        /**
+         * Checks if two vectors are orthogonal.
+         */
+        private boolean isOrthogonal(Vector v1, Vector v2) {
+            return isZero(v1.dotProduct(v2));
         }
 
         /**
