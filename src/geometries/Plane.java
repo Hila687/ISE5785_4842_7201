@@ -62,8 +62,49 @@ public class Plane extends Geometry {
     }
 
 
+    /**
+     * Finds the intersection points between a ray and the plane.
+     * The method checks if the ray intersects the plane and returns the intersection point(s).
+     *
+     * @param ray the ray to intersect with the plane
+     * @return a list of intersection points, or {@code null} if there are none
+     */
+    public Point findIntersectionsPoint(Ray ray) {
+        Point p0 = ray.getHead();
+        Vector dir = ray.getDirection();
+
+        Vector q0ToP0;
+
+        try {
+            q0ToP0 = q0.subtract(p0); // Vector from ray origin to plane point (Q0 - P0)
+        } catch (IllegalArgumentException e) {
+            // Special case: the ray starts exactly on the plane reference point
+            return null;
+        }
+
+        // Calculate numerator and denominator of the plane intersection formula
+        double numerator = alignZero(normal.dotProduct(q0ToP0));
+        double denominator = alignZero(normal.dotProduct(dir));
+
+        // If denominator is zero → the ray is parallel to the plane
+        if (isZero(denominator)) {
+            return null;
+        }
+
+        // Calculate t (scalar for ray direction)
+        double t = alignZero(numerator / denominator);
+
+        // If t <= 0 → the intersection is behind the ray's origin or exactly at it
+        if (t <= 0) {
+            return null;
+        }
+
+        // Calculate the actual intersection point on the ray
+        return ray.getPoint(t);
+    }
+
     @Override
-    public List<Point> findIntersections(Ray ray) {
+    public List<Intersection> calculateIntersectionsHelper(Ray ray) {
         Point p0 = ray.getHead();
         Vector dir = ray.getDirection();
 
@@ -95,6 +136,6 @@ public class Plane extends Geometry {
 
         // Calculate the actual intersection point on the ray
         Point intersection = ray.getPoint(t);
-        return List.of(intersection);
-    }
+        return List.of(new Intersection(this, intersection));
+        }
 }

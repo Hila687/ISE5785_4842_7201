@@ -12,7 +12,7 @@ import java.util.List;
  * using the Composite Design Pattern.
  * It allows grouping multiple geometric shapes and treating them as a single unit.
  */
-public class Geometries implements Intersectable {
+public class Geometries extends Intersectable {
 
     /**
      * Internal list of geometries that implement {@link Intersectable}.
@@ -45,14 +45,42 @@ public class Geometries implements Intersectable {
     }
 
 
+//    @Override
+//    public List<Point> findIntersections(Ray ray) {
+//        List<Point> intersections = null;
+//
+//        // Iterate over each geometry in the collection
+//        for (Intersectable geometry : geometries) {
+//            // Get intersections with the current geometry
+//            List<Point> temp = geometry.findIntersections(ray);
+//
+//            // If there are intersections, add them to the final list
+//            if (temp != null) {
+//                if (intersections == null) {
+//                    intersections = new LinkedList<>();
+//                }
+//                intersections.addAll(temp);
+//            }
+//        }
+//
+//        // Return null if no intersections were found, or the list of points otherwise
+//        return intersections;
+//    }
+
+    /**
+     * Calculates the intersections of a ray with all geometries in the collection.
+     *
+     * @param ray the ray to intersect with the geometries
+     * @return a list of intersections, or null if no intersections were found
+     */
     @Override
-    public List<Point> findIntersections(Ray ray) {
-        List<Point> intersections = null;
+    public List<Intersection> calculateIntersectionsHelper(Ray ray) {
+        List<Intersection> intersections = null;
 
         // Iterate over each geometry in the collection
         for (Intersectable geometry : geometries) {
             // Get intersections with the current geometry
-            List<Point> temp = geometry.findIntersections(ray);
+            List<Intersection> temp = geometry.calculateIntersections(ray);
 
             // If there are intersections, add them to the final list
             if (temp != null) {

@@ -46,16 +46,85 @@ public class Tube extends RadialGeometry {
         return p.subtract(o).normalize();
     }
 
-    /**
-     * Finds the intersection points between a ray and the tube.
-     * Uses the analytical solution of a quadratic equation derived from the tube's geometry.
-     *
-     * @param ray the ray to intersect with the tube
-     * @return a list of intersection points, or {@code null} if there are none
-     */
-    @Override
-    public List<Point> findIntersections(Ray ray) {
+//    /**
+//     * Finds the intersection points between a ray and the tube.
+//     * Uses the analytical solution of a quadratic equation derived from the tube's geometry.
+//     *
+//     * @param ray the ray to intersect with the tube
+//     * @return a list of intersection points, or {@code null} if there are none
+//     */
+//    @Override
+//    public List<Point> findIntersections(Ray ray) {
+//
+//        Point P0 = ray.getHead();           // Ray origin
+//        Vector v = ray.getDirection();      // Ray direction
+//
+//        Point Pa = axis.getHead();          // Tube axis origin
+//        Vector Va = axis.getDirection();    // Tube axis direction
+//
+//        double A, B, C;
+//
+//        // Compute the vector: v - (v ⋅ Va) * Va
+//        Vector VecA = v;
+//        double Vva = v.dotProduct(Va);
+//
+//        try {
+//            if (!isZero(Vva))
+//                VecA = v.subtract(Va.scale(Vva)); // Vector component perpendicular to axis
+//
+//            // A = ||v - (v ⋅ Va)Va||^2
+//            A = VecA.lengthSquared();
+//        } catch (IllegalArgumentException ex) {
+//            // v parallel to Va → A = 0 → no intersections
+//            return null;
+//        }
+//
+//        try {
+//            // Compute deltaP = P0 - Pa
+//            Vector DeltaP = P0.subtract(Pa);
+//
+//            // Compute: DeltaP - (DeltaP ⋅ Va) * Va
+//            Vector DeltaPMinusDeltaPVaVa = DeltaP;
+//            double DeltaPVa = DeltaP.dotProduct(Va);
+//
+//            if (!isZero(DeltaPVa))
+//                DeltaPMinusDeltaPVaVa = DeltaP.subtract(Va.scale(DeltaPVa));
+//
+//            // B = 2 * [(v - (v ⋅ Va)Va) ⋅ (DeltaP - (DeltaP ⋅ Va)Va)]
+//            B = 2 * (VecA.dotProduct(DeltaPMinusDeltaPVaVa));
+//
+//            // C = ||DeltaP - (DeltaP ⋅ Va)Va||^2 - r^2
+//            C = DeltaPMinusDeltaPVaVa.lengthSquared() - radius * radius;
+//
+//        } catch (IllegalArgumentException ex) {
+//            // Case: DeltaP is zero or colinear → fallback values
+//            B = 0;
+//            C = -1 * radius * radius;
+//        }
+//
+//        // Solve the quadratic equation: At^2 + Bt + C = 0
+//        double Disc = alignZero(B * B - 4 * A * C); // Discriminant
+//
+//        if (Disc <= 0)
+//            return null; // No real solutions
+//
+//        double t1, t2;
+//
+//        // Compute the two roots
+//        t1 = alignZero((-B + Math.sqrt(Disc)) / (2 * A));
+//        t2 = alignZero((-B - Math.sqrt(Disc)) / (2 * A));
+//
+//        List<Point> intersections = new LinkedList<>();
+//
+//        // Add valid (positive) intersection points
+//        if (t1 > 0) intersections.add(ray.getPoint(t1));
+//        if (t2 > 0 && !isZero(t2 - t1)) intersections.add(ray.getPoint(t2)); // Avoid duplicates
+//
+//        return intersections.isEmpty() ? null : intersections;
+//    }
 
+    @Override
+    public List<Intersection> calculateIntersectionsHelper(Ray ray) {
         Point P0 = ray.getHead();           // Ray origin
         Vector v = ray.getDirection();      // Ray direction
 
@@ -114,12 +183,15 @@ public class Tube extends RadialGeometry {
         t1 = alignZero((-B + Math.sqrt(Disc)) / (2 * A));
         t2 = alignZero((-B - Math.sqrt(Disc)) / (2 * A));
 
-        List<Point> intersections = new LinkedList<>();
+        List<Intersection> intersections = new LinkedList<>();
 
         // Add valid (positive) intersection points
-        if (t1 > 0) intersections.add(ray.getPoint(t1));
-        if (t2 > 0 && !isZero(t2 - t1)) intersections.add(ray.getPoint(t2)); // Avoid duplicates
+        if (t1 > 0)
+            intersections.add(new Intersection(this, ray.getPoint(t1)));
+        if (t2 > 0 && !isZero(t2 - t1))
+            intersections.add(new Intersection(this, ray.getPoint(t2))); // Avoid duplicates
 
+        // Check if the intersections list is empty
         return intersections.isEmpty() ? null : intersections;
     }
 }

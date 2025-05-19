@@ -28,10 +28,44 @@ public class Triangle extends Polygon {
     }
 
 
+//    @Override
+//    public List<Point> findIntersections(Ray ray) {
+//        // First, check intersection with the triangle's supporting plane
+//        List<Point> intersection = plane.findIntersections(ray);
+//        if (intersection == null) {
+//            return null; // No intersection with the plane → no intersection with triangle
+//        }
+//
+//        Point p0 = ray.getHead();      // Ray origin
+//        Vector dir = ray.getDirection(); // Ray direction
+//
+//        // Create vectors from ray origin to each of the triangle's vertices
+//        Vector v1 = vertices.get(0).subtract(p0);
+//        Vector v2 = vertices.get(1).subtract(p0);
+//        Vector v3 = vertices.get(2).subtract(p0);
+//
+//        // Compute normals to the triangle edges (via cross product)
+//        Vector n1 = v1.crossProduct(v2).normalize();
+//        Vector n2 = v2.crossProduct(v3).normalize();
+//        Vector n3 = v3.crossProduct(v1).normalize();
+//
+//        // Compute dot products of ray direction with each normal
+//        double s1 = alignZero(dir.dotProduct(n1));
+//        double s2 = alignZero(dir.dotProduct(n2));
+//        double s3 = alignZero(dir.dotProduct(n3));
+//
+//        // Check if all dot products have the same sign (point lies inside triangle)
+//        if ((s1 > 0 && s2 > 0 && s3 > 0) || (s1 < 0 && s2 < 0 && s3 < 0)) {
+//            return intersection; // Valid intersection within triangle boundaries
+//        }
+//
+//        return null; // Intersection point is outside the triangle
+//    }
+
     @Override
-    public List<Point> findIntersections(Ray ray) {
+    public List<Intersection> calculateIntersectionsHelper(Ray ray) {
         // First, check intersection with the triangle's supporting plane
-        List<Point> intersection = plane.findIntersections(ray);
+        Point intersection = plane.findIntersectionsPoint(ray);
         if (intersection == null) {
             return null; // No intersection with the plane → no intersection with triangle
         }
@@ -56,7 +90,8 @@ public class Triangle extends Polygon {
 
         // Check if all dot products have the same sign (point lies inside triangle)
         if ((s1 > 0 && s2 > 0 && s3 > 0) || (s1 < 0 && s2 < 0 && s3 < 0)) {
-            return intersection; // Valid intersection within triangle boundaries
+            // Valid intersection within triangle boundaries
+            return List.of(new Intersection(this, intersection));
         }
 
         return null; // Intersection point is outside the triangle

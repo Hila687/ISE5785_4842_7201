@@ -1,5 +1,7 @@
 package primitives;
 
+import geometries.Intersectable. Intersection;
+
 import java.util.List;
 
 import static primitives.Util.isZero;
@@ -80,38 +82,52 @@ public class Ray {
 
 
     /**
-     * Finds the closest point to the head of the ray from a list of points.
-     * If the list is null or empty, returns null.
+     * Finds the closest point from a list of points.
+     * If the list is null, returns null.
      *
      * @param points the list of points to search
      * @return the closest point to the head of the ray, or null if the list is empty
      */
     public Point findClosestPoint(List<Point> points) {
+        if (points == null || points.isEmpty()) return null;
+        Intersection closest = findClosestIntersection(
+                points.stream().map(p -> new Intersection(null, p)).toList()
+        );
+        return closest == null ? null : closest.point;
+    }
+
+    /**
+     * Finds the closest intersection point from a list of intersections.
+     * If the list is null or empty, returns null.
+     *
+     * @param intersections the list of intersections to search
+     * @return the closest intersection point to the head of the ray, or null if the list is empty
+     */
+    public Intersection findClosestIntersection(List<Intersection> intersections) {
         // Check if the list is null or empty; return null if so
-        if (points == null || points.isEmpty()) {
+        if (intersections == null || intersections.isEmpty()) {
             return null;
         }
 
         // Initialize the minimum distance to the maximum possible value
         double minDistance = Double.MAX_VALUE;
 
-        // Assume the first point is the closest initially
-        Point closestPoint = points.get(0);
+        // Assume the first intersection is the closest initially
+        Intersection closestIntersection = intersections.getFirst();
 
-        // Iterate over all points in the list
-        for (Point point : points) {
-            // Calculate the squared distance from the ray's head to the current point
-            double distance = point.distanceSquared(head);
+        // Iterate over all intersections in the list
+        for (Intersection intersection : intersections) {
+            // Calculate the squared distance from the ray's head to the current intersection point
+            double distance = intersection.point.distanceSquared(head);
 
-            // Update the closest point if a closer one is found
+            // Update the closest intersection if a closer one is found
             if (distance < minDistance) {
                 minDistance = distance;
-                closestPoint = point;
+                closestIntersection = intersection;
             }
         }
 
-        // Return the closest point found
-        return closestPoint;
+        // Return the closest intersection found
+        return closestIntersection;
     }
-
 }
