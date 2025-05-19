@@ -1,7 +1,7 @@
 package geometries;
 
-import primitives.Point;
-import primitives.Ray;
+import lighting.LightSource;
+import primitives.*;
 
 import java.util.List;
 import java.util.Objects;
@@ -52,6 +52,17 @@ public abstract class Intersectable {
         public final Geometry geometry;
         public final Point point;
 
+        // Required by stage 6 part G:
+        public final Material material; // Initialized only if geometry is not null
+
+        public Vector v;   // Ray direction
+        public Vector n;   // Normal at intersection point
+        public double nv;  // Dot product of v and n
+
+        public LightSource light; // Current light source
+        public Vector l;   // Vector from light source to point
+        public double nl;  // Dot product of l and n
+
         /**
          * Constructor to create an intersection object.
          *
@@ -61,6 +72,7 @@ public abstract class Intersectable {
         public Intersection(Geometry geometry, Point point) {
             this.geometry = geometry;
             this.point = point;
+            this.material = geometry == null ? null : geometry.getMaterial();
         }
 
         @Override
@@ -77,7 +89,6 @@ public abstract class Intersectable {
                     ", point=" + point +
                     '}';
         }
-
-
     }
+
 }

@@ -7,7 +7,7 @@ import primitives.Color;
  * Ambient light provides a uniform base illumination that affects all objects equally,
  * regardless of their position or orientation.
  */
-public class AmbientLight {
+public class AmbientLight extends Light{
 
     /**
      * A constant representing no ambient light (black color).
@@ -16,25 +16,13 @@ public class AmbientLight {
     public static final AmbientLight NONE = new AmbientLight(Color.BLACK);
 
     /**
-     * The intensity (color) of the ambient light.
-     */
-    private final Color intensity;
-
-    /**
      * Constructs an ambient light source with the specified intensity.
      *
      * @param IA the color/intensity of the ambient light
      */
     public AmbientLight(Color IA) {
-        this.intensity = IA;
+        super(IA);
     }
 
-    /**
-     * Returns the intensity of the ambient light.
-     *
-     * @return the color representing the ambient light's intensity
-     */
-    public Color getIntensity() {
-        return intensity;
-    }
+
 }

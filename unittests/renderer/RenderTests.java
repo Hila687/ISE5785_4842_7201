@@ -85,6 +85,57 @@ public class RenderTests {
          .writeToImage("color render test");
    }
 
+   /**
+    * Test rendering a scene with ambient light only (no emission or direct lighting).
+    * Each geometry is given a material with a specific ambient reflection coefficient (kA),
+    * and the ambient light is set to pure white.
+    *
+    * The goal is to verify that:
+    * - The color of each object is determined solely by IA * kA.
+    * - No emission or light sources are involved.
+    * - The ambient effect is applied proportionally based on the material.
+    *
+    * Expected visual result:
+    * - The sphere appears as a light gray tone (kA = 0.4).
+    * - The top-left triangle appears green-tinted (kA = (0, 0.8, 0)).
+    * - The bottom-left triangle appears red-tinted (kA = (0.8, 0, 0)).
+    * - The bottom-right triangle appears blue-tinted (kA = (0, 0, 0.8)).
+    *
+    * This test corresponds to the requirements of Stage 6 (Part B) of the project.
+    */
+
+   @Test
+   public void renderAmbientOnlyTest() {
+      Scene scene = new Scene("Ambient Only").setAmbientLight(new AmbientLight(new Color(WHITE)));
+
+      scene.geometries.add(
+              new Sphere(50, new Point(0, 0, -100))
+                      .setMaterial(new Material().setKA(new Double3(0.4))),
+
+              // up left – ירוק
+              new Triangle(new Point(-100, 0, -100), new Point(0, 100, -100), new Point(-100, 100, -100))
+                      .setMaterial(new Material().setKA(new Double3(0, 0.8, 0))),
+
+              // down left – אדום
+              new Triangle(new Point(-100, 0, -100), new Point(0, -100, -100), new Point(-100, -100, -100))
+                      .setMaterial(new Material().setKA(new Double3(0.8, 0, 0))),
+
+              // down right – כחול
+              new Triangle(new Point(100, 0, -100), new Point(0, -100, -100), new Point(100, -100, -100))
+                      .setMaterial(new Material().setKA(new Double3(0, 0, 0.8)))
+      );
+
+      camera
+              .setRayTracer(scene, RayTracerType.SIMPLE)
+              .setResolution(1000, 1000)
+              .build()
+              .renderImage()
+              .printGrid(100, new Color(WHITE))
+              .writeToImage("ambient only test");
+   }
+
+
+
    /** Test for XML based scene - for bonus */
    @Test
    public void basicRenderXml() throws IOException, ParserConfigurationException, SAXException {
@@ -121,4 +172,6 @@ public class RenderTests {
          .printGrid(100, new Color(YELLOW)) //
          .writeToImage("xml render test");
    }
+
+
 }
