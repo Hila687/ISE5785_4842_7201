@@ -105,7 +105,7 @@ public class Ray {
      */
     public Intersection findClosestIntersection(List<Intersection> intersections) {
         // Check if the list is null or empty; return null if so
-        if (intersections == null || intersections.isEmpty()) {
+        if (intersections == null) {
             return null;
         }
 

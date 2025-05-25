@@ -45,27 +45,7 @@ public class Geometries extends Intersectable {
     }
 
 
-//    @Override
-//    public List<Point> findIntersections(Ray ray) {
-//        List<Point> intersections = null;
-//
-//        // Iterate over each geometry in the collection
-//        for (Intersectable geometry : geometries) {
-//            // Get intersections with the current geometry
-//            List<Point> temp = geometry.findIntersections(ray);
-//
-//            // If there are intersections, add them to the final list
-//            if (temp != null) {
-//                if (intersections == null) {
-//                    intersections = new LinkedList<>();
-//                }
-//                intersections.addAll(temp);
-//            }
-//        }
-//
-//        // Return null if no intersections were found, or the list of points otherwise
-//        return intersections;
-//    }
+
 
     /**
      * Calculates the intersections of a ray with all geometries in the collection.
@@ -75,7 +55,7 @@ public class Geometries extends Intersectable {
      */
     @Override
     public List<Intersection> calculateIntersectionsHelper(Ray ray) {
-        List<Intersection> intersections = null;
+        List<Intersection> intersections = new LinkedList<>();
 
         // Iterate over each geometry in the collection
         for (Intersectable geometry : geometries) {
@@ -84,14 +64,11 @@ public class Geometries extends Intersectable {
 
             // If there are intersections, add them to the final list
             if (temp != null) {
-                if (intersections == null) {
-                    intersections = new LinkedList<>();
-                }
                 intersections.addAll(temp);
             }
         }
 
         // Return null if no intersections were found, or the list of points otherwise
-        return intersections;
+        return intersections.isEmpty()? null : intersections;
     }
 }

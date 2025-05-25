@@ -3,6 +3,13 @@ package lighting;
 import primitives.Color;
 import primitives.*;
 
+
+/**
+ * Interface representing a light source in a 3D scene.
+ * All light sources should implement this interface to provide their specific behavior.
+ *
+ * @author Hila Rosental & Miller
+ */
 public interface LightSource {
 
     /**

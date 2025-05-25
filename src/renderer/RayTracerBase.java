@@ -8,6 +8,7 @@ import scene.Scene;
  * Abstract base class for ray tracers.
  * A ray tracer is responsible for calculating the color seen along a ray
  * based on the scene configuration (geometry, lighting, etc.).
+ * @author Hila Rosental & Miller
  */
 public abstract class RayTracerBase {
 

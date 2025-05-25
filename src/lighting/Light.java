@@ -2,6 +2,11 @@ package lighting;
 
 import primitives.Color;
 
+/**
+ * Abstract class representing a light source in a 3D scene.
+ * All light sources should extend this class and implement their specific behavior.
+ * @author Hila Rosental & Miller
+ */
 abstract class Light {
     /**
      * The intensity of the light.
