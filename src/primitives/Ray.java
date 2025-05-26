@@ -22,6 +22,9 @@ public class Ray {
      */
     private final Vector direction;
 
+    /** Threshold for floating-point comparisons */
+    private static final double DELTA = 0.1;
+
     /**
      * Constructs a ray from a starting point and a direction vector.
      * The direction vector is automatically normalized.
@@ -32,6 +35,19 @@ public class Ray {
     public Ray(Point head, Vector direction) {
         this.head = head;
         this.direction = direction.normalize();
+    }
+
+    /**
+     * Constructor to create a ray with an offset applied to the origin.
+     *
+     * @param point the original point
+     * @param direction the direction of the ray
+     * @param normal the normal vector for offsetting the origin
+     */
+    public Ray(Point point, Vector direction, Vector normal) {
+        this.direction = direction.normalize();
+        double sign = direction.dotProduct(normal) > 0 ? DELTA : -DELTA;
+        this.head = point.add(normal.scale(sign));
     }
 
     /**

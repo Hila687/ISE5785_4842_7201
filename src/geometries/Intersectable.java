@@ -66,7 +66,7 @@ public abstract class Intersectable {
         public Vector v;
 
         /** The normal vector at the intersection point */
-        public Vector n;
+        public Vector normal;
 
         /** Dot product between the normal and the ray direction (v) */
         public double nv;
@@ -75,7 +75,7 @@ public abstract class Intersectable {
         public LightSource light;
 
         /** Vector from the light source to the intersection point */
-        public Vector l;
+        public Vector lightDirection;
 
         /** Dot product between the normal and the light vector */
         public double nl;
