@@ -2,10 +2,7 @@ package renderer;
 
 import geometries.Intersectable.Intersection;
 import lighting.LightSource;
-import primitives.Color;
-import primitives.Double3;
-import primitives.Ray;
-import primitives.Vector;
+import primitives.*;
 import scene.Scene;
 
 import java.util.List;
@@ -18,6 +15,9 @@ import static primitives.Util.isZero;
  * This implementation handles only local lighting effects (Stage 6).
  */
 public class SimpleRayTracer extends RayTracerBase {
+
+    /** Threshold for floating-point comparisons */
+    private static final double DELTA = 0.1;
 
     /**
      * Constructs a SimpleRayTracer with the given scene.
@@ -77,6 +77,50 @@ public class SimpleRayTracer extends RayTracerBase {
         // Final color = ambient + local
         return ambientLight.add(localEffects);
     }
+
+
+    /**
+     * Checks if the intersection point is unshaded (not in shadow).
+     * Casts a shadow ray towards the light source and checks for intersections.
+     *
+     * @param intersection the intersection to check
+     * @return true if the point is unshaded, false if it is in shadow
+     */
+    private boolean unshaded(Intersection intersection) {
+        //calculate the direction from the intersection point to the light source
+        Vector pointToLight = intersection.l.scale(-1);
+
+        // Create a small offset to avoid self-shadowing issues
+        Vector delta = intersection.n.scale(intersection.nl < 0 ? DELTA : -DELTA);
+
+        // Calculate the origin of the shadow ray by moving slightly away from the intersection point
+        Point shadowRayOrigin = intersection.point.add(delta);
+
+        // Create the shadow ray towards the light source
+        Ray shadowRay = new Ray(shadowRayOrigin, pointToLight);
+
+        // Calculate intersections of the shadow ray with the scene
+        List<Intersection> shadowIntersections = scene.geometries.calculateIntersections(shadowRay);
+
+        // If there are no intersections, the point is unshaded
+        if (shadowIntersections == null) {
+            return true;
+        }
+
+        // Check if any intersection is closer than the light source
+        double lightDistance = intersection.light.getDistance(intersection.point);
+
+        // If the light source is at infinity, we consider it unshaded
+        for (Intersection shadowIntersection : shadowIntersections) {
+            double intersectionDistance = shadowIntersection.point.distance(shadowRayOrigin);
+            if (intersectionDistance < lightDistance) {
+                return false; // Point is in shadow
+            }
+        }
+
+        return true; // No blocking objects closer than the light source
+    }
+
 
     /**
      * Prepares intersection data: view vector, normal vector, and their dot product.
@@ -143,6 +187,11 @@ public class SimpleRayTracer extends RayTracerBase {
             // Update intersection data for the current light
             if (!setLightSource(intersection, lightSource)) {
                 continue;
+            }
+
+            // Check if the point is unshaded (not in shadow)
+            if (!unshaded(intersection)) {
+                continue; // Skip this light source if the point is in shadow
             }
 
             // Check if light and view are on the same side of the surface
