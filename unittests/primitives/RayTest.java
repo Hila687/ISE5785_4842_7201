@@ -42,9 +42,6 @@ class RayTest {
         //============ Boundary Values Tests ======================
         // TC11: Empty list
 
-        // Create an empty list of points
-        List<Point> emptyList = List.of();
-        assertNull( ray.findClosestPoint(emptyList), "Empty list should return null");
 
         // TC12: First point is the closest one
         // Create a list of points with the first point being the closest

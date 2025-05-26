@@ -7,14 +7,18 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Intersectactable interface represents a geometric shape that can be intersected by a ray.
+ * Intersectable represents an abstract geometric object that can be intersected by rays.
+ * It defines the interface and shared logic for finding intersections.
+ * Concrete classes (like Sphere, Triangle, etc.) must implement the intersection logic.
  */
 public abstract class Intersectable {
+
     /**
-     * Finds the intersections of a ray with the geometry.
+     * Finds the intersection points (as Point objects) of a ray with this geometry.
+     * This method is a wrapper that returns only the points, not full intersection details.
      *
      * @param ray the ray to intersect with the geometry
-     * @return a list of intersection points, or an empty list if no intersections were found
+     * @return a list of intersection points, or null if none were found
      */
     public final List<Point> findIntersections(Ray ray) {
         var list = calculateIntersections(ray);
@@ -22,49 +26,63 @@ public abstract class Intersectable {
     }
 
     /**
-     * Calculates the intersections between a ray and this geometry.
-     * This method must be implemented by all concrete geometries.
+     * Helper method that must be implemented by subclasses.
+     * Calculates the detailed intersections between a ray and this geometry.
      *
      * @param ray the ray to intersect with
-     * @return list of intersection objects, or null if there are none
+     * @return list of Intersection objects, or null if there are none
      */
     protected abstract List<Intersection> calculateIntersectionsHelper(Ray ray);
 
-
-
     /**
-     * Calculates the intersections of a ray with the geometry.
+     * Finds the full intersection details (geometry, point, etc.) of a ray with this geometry.
+     * Uses the subclass's implementation of the helper method and performs null/empty filtering.
      *
      * @param ray the ray to intersect with the geometry
-     * @return a list of intersections, or an empty list if no intersections were found
+     * @return a list of Intersection objects, or null if no intersections were found
      */
     public final List<Intersection> calculateIntersections(Ray ray) {
         List<Intersection> intersections = calculateIntersectionsHelper(ray);
-        if (intersections == null || intersections.isEmpty()) {
-            return null;
-        }
-        return intersections;
+        // Return null instead of empty list to match course convention
+        return (intersections == null || intersections.isEmpty()) ? null : intersections;
     }
+
     /**
-     * intersection class represents an intersection between a ray and a geometry.
+     * Intersection represents a detailed result of a ray intersecting a geometry.
+     * It stores not only the point and the geometry, but also lighting-related fields
+     * required for computing shading (added in Stage 6).
      */
     public static class Intersection {
+        /** The geometry object that was intersected */
         public final Geometry geometry;
+
+        /** The intersection point on the geometry */
         public final Point point;
 
-        // Required by stage 6 part G:
-        public final Material material; // Initialized only if geometry is not null
+        /** The material at the intersection point (null if geometry is null) */
+        public final Material material;
 
-        public Vector v;   // Ray direction
-        public Vector n;   // Normal at intersection point
-        public double nv;  // Dot product of v and n
+        /** The direction vector of the incoming ray */
+        public Vector v;
 
-        public LightSource light; // Current light source
-        public Vector l;   // Vector from light source to point
-        public double nl;  // Dot product of l and n
+        /** The normal vector at the intersection point */
+        public Vector n;
+
+        /** Dot product between the normal and the ray direction (v) */
+        public double nv;
+
+        /** The light source currently being evaluated */
+        public LightSource light;
+
+        /** Vector from the light source to the intersection point */
+        public Vector l;
+
+        /** Dot product between the normal and the light vector */
+        public double nl;
 
         /**
-         * Constructor to create an intersection object.
+         * Constructs an Intersection object with the given geometry and point.
+         * Also stores the material of the geometry if available.
          *
          * @param geometry the geometry that was intersected
          * @param point    the intersection point
@@ -90,5 +108,4 @@ public abstract class Intersectable {
                     '}';
         }
     }
-
 }

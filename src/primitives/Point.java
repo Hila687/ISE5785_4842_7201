@@ -94,7 +94,7 @@ public class Point {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         return (obj instanceof Point other)
-                && Objects.equals(xyz, other.xyz);
+                && xyz.equals(other.xyz);
     }
 
 
