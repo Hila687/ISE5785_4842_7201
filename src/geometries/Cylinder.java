@@ -4,7 +4,12 @@ import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
 
+import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
+
+import static primitives.Util.alignZero;
+import static primitives.Util.isZero;
 
 /**
  * Class Cylinder represents a finite cylinder in 3D space.
@@ -59,7 +64,70 @@ public class Cylinder extends Tube {
         // Otherwise → point is on the side surface, use Tube's logic
         return super.getNormal(p);
     }
+    @Override
+    public List<Intersection> calculateIntersectionsHelper(Ray ray) {
+        List<Intersection> result = new LinkedList<>();
 
+        Point p0 = ray.getHead();
+        Vector v = ray.getDirection();
+        Point axisP0 = axis.getHead(); // bottom base center
+        Vector axisDir = axis.getDirection();
+        Point axisP1 = axisP0.add(axisDir.scale(height)); // top base center
+
+        boolean rayStartsAtBottomCenter = p0.equals(axisP0);
+        boolean rayAlongAxis = rayStartsAtBottomCenter &&
+                (axisDir.equals(v) || axisDir.equals(v.scale(-1)));
+
+        // Special case: ray starts at bottom center and goes exactly along the axis direction
+        if (rayAlongAxis && axisDir.equals(v)) {
+            result.add(new Intersection(this, axisP1));
+            return result;
+        }
+
+        // === 1. Intersections with the curved side (tube) ===
+        List<Intersection> sideHits = super.calculateIntersectionsHelper(ray);
+        if (sideHits != null) {
+            for (Intersection hit : sideHits) {
+                double t = alignZero(hit.point.subtract(axisP0).dotProduct(axisDir));
+                if (t >= 0 && t <= height) {
+                    result.add(new Intersection(this, hit.point));
+                }
+            }
+        }
+
+        // === 2. Intersection with bottom base (unless ray starts exactly there) ===
+        if (!rayStartsAtBottomCenter) {
+            Plane bottom = new Plane(axisP0, axisDir);
+            List<Point> bottomHits = bottom.findIntersections(ray);
+            if (bottomHits != null) {
+                Point p = bottomHits.getFirst();
+                if (!isZero(p.subtract(p0).lengthSquared()) &&
+                        alignZero(p.subtract(axisP0).lengthSquared() - radius * radius) <= 0) {
+                    result.add(new Intersection(this, p));
+                }
+            }
+        } else if (!rayAlongAxis) {
+            // Special case: ray starts at center but not along axis – consider it as hitting bottom
+            result.add(new Intersection(this, axisP0));
+        }
+
+        // === 3. Intersection with top base ===
+        Plane top = new Plane(axisP1, axisDir);
+        List<Point> topHits = top.findIntersections(ray);
+        if (topHits != null) {
+            Point p = topHits.getFirst();
+            if (!isZero(p.subtract(p0).lengthSquared()) &&
+                    alignZero(p.subtract(axisP1).lengthSquared() - radius * radius) <= 0) {
+                result.add(new Intersection(this, p));
+            }
+        }
+
+        // Sort results by distance from ray origin
+        if (result.isEmpty()) return null;
+
+        result.sort(Comparator.comparingDouble(i -> i.point.distance(p0)));
+        return result;
+    }
 
 
 }
