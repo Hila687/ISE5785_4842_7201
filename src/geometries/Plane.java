@@ -104,7 +104,7 @@ public class Plane extends Geometry {
     }
 
     @Override
-    public List<Intersection> calculateIntersectionsHelper(Ray ray) {
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray, double maxDistance) {
         Point p0 = ray.getHead();
         Vector dir = ray.getDirection();
 
@@ -130,9 +130,8 @@ public class Plane extends Geometry {
         double t = alignZero(numerator / denominator);
 
         // If t <= 0 → the intersection is behind the ray's origin or exactly at it
-        if (t <= 0) {
-            return null;
-        }
+        if (t <= 0 || alignZero(t - maxDistance) > 0) return null;
+
 
         // Calculate the actual intersection point on the ray
         Point intersection = ray.getPoint(t);

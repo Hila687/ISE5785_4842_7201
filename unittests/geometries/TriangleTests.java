@@ -3,6 +3,8 @@ package geometries;
 import org.junit.jupiter.api.Test;
 import primitives.*;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -78,4 +80,48 @@ class TriangleTests {
         assertNull(triangle.findIntersections(ray6),
                 "Ray on edge continuation – no intersection");
     }
+
+    /**
+     * Test method for {@link Triangle#calculateIntersections(Ray, double)}.
+     * Validates behavior with maxDistance constraint.
+     */
+    @Test
+    void testCalculateIntersectionsWithMaxDistance() {
+        Triangle triangle = new Triangle(
+                new Point(0, 1, 0),
+                new Point(1, 0, 0),
+                new Point(-1, 0, 0)
+        );
+
+        // TC01: Intersection inside triangle within maxDistance
+        Ray ray1 = new Ray(new Point(0, 0.5, -1), new Vector(0, 0, 1));
+        List<Intersectable.Intersection> result1 = triangle.calculateIntersections(ray1, 3);
+        assertNotNull(result1, "TC01: Expected intersection inside triangle");
+        assertEquals(1, result1.size(), "TC01: Expected exactly one intersection");
+
+        // TC02: Same ray, maxDistance too small → no intersection
+        List<Intersectable.Intersection> result2 = triangle.calculateIntersections(ray1, 0.5);
+        assertNull(result2, "TC02: Expected no intersection due to small maxDistance");
+
+        // TC03: Intersection exactly at the maxDistance
+        List<Intersectable.Intersection> result3 = triangle.calculateIntersections(ray1, 1.0);
+        assertNotNull(result3, "TC03: Intersection exactly at maxDistance should be accepted");
+        assertEquals(1, result3.size(), "TC03: Expected one intersection");
+
+        // TC04: Ray aimed outside the triangle → no intersection
+        Ray ray2 = new Ray(new Point(1, 1, -1), new Vector(0, 0, 1));
+        List<Intersectable.Intersection> result4 = triangle.calculateIntersections(ray2, 10);
+        assertNull(result4, "TC04: Ray misses triangle – should return null");
+
+        // TC05: Ray aimed to hit exactly on the edge → no intersection
+        Ray ray3 = new Ray(new Point(0.5, 0.5, -1), new Vector(0, 0, 1));
+        List<Intersectable.Intersection> result5 = triangle.calculateIntersections(ray3, 5);
+        assertNull(result5, "TC05: Ray on edge – should return null");
+
+        // TC06: Ray aimed at the vertex of the triangle → no intersection
+        Ray ray4 = new Ray(new Point(1, 0, -1), new Vector(0, 0, 1));
+        List<Intersectable.Intersection> result6 = triangle.calculateIntersections(ray4, 5);
+        assertNull(result6, "TC06: Ray on vertex – should return null");
+    }
+
 }

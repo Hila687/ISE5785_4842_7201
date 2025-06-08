@@ -153,4 +153,44 @@ class SphereTests {
         //TC17 the run in the sphere and does not reach the middle of the sphere because the direction is opposite
         assertEquals(List.of(p2), sphere.findIntersections(new Ray(p5, v3)), "Failed to find the intersection point when the ray start in the sphere and doesn't reach the middle of the sphere");
     }
+
+    /**
+     * Test method for {@link Sphere#calculateIntersections(Ray, double)}.
+     * Validates behavior with maxDistance constraint.
+     */
+    @Test
+    void testCalculateIntersectionsWithMaxDistance() {
+        Sphere sphere = new Sphere(1, new Point(0, 0, 0));
+
+        // TC01: Two intersection points, both within maxDistance
+        Ray ray1 = new Ray(new Point(-2, 0, 0), new Vector(1, 0, 0));
+        List<Intersectable.Intersection> result1 = sphere.calculateIntersections(ray1, 4);
+        assertNotNull(result1, "TC01: Expected two intersection points");
+        assertEquals(2, result1.size(), "TC01: Wrong number of intersections");
+
+        // TC02: Two intersections, only the first is within maxDistance
+        List<Intersectable.Intersection> result2 = sphere.calculateIntersections(ray1, 2.5);
+        assertNotNull(result2, "TC02: Expected one intersection point");
+        assertEquals(1, result2.size(), "TC02: Wrong number of intersections");
+
+        // TC03: Both intersection points are beyond maxDistance
+        List<Intersectable.Intersection> result3 = sphere.calculateIntersections(ray1, 0.5);
+        assertNull(result3, "TC03: Expected no intersections due to small maxDistance");
+
+        // TC04: Single intersection from inside the sphere, within maxDistance
+        Ray ray4 = new Ray(new Point(0.5, 0, 0), new Vector(1, 0, 0));
+        List<Intersectable.Intersection> result4 = sphere.calculateIntersections(ray4, 2);
+        assertNotNull(result4, "TC04: Expected one intersection from inside the sphere");
+        assertEquals(1, result4.size(), "TC04: Wrong number of intersections");
+
+        // TC05: Ray is tangent, point exactly at maxDistance
+        Ray ray5 = new Ray(new Point(0, -1, 0), new Vector(1, 0, 0));
+        List<Intersectable.Intersection> result5 = sphere.calculateIntersections(ray5, 1);
+        assertNull(result5, "TC05: Tangent ray should not intersect");
+
+        // TC06: Ray misses the sphere completely
+        Ray ray6 = new Ray(new Point(0, -2, 0), new Vector(1, 0, 0));
+        List<Intersectable.Intersection> result6 = sphere.calculateIntersections(ray6, 10);
+        assertNull(result6, "TC06: Ray should miss the sphere entirely");
+    }
 }

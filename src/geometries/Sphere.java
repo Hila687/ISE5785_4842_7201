@@ -4,6 +4,7 @@ import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import static primitives.Util.alignZero;
@@ -39,8 +40,7 @@ public class Sphere extends RadialGeometry {
 
 
     @Override
-    public List<Intersection> calculateIntersectionsHelper(Ray ray)
-    {
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray,double maxDistance) {
         Vector v = ray.getDirection();
         Point p0 = ray.getHead();
 
@@ -60,18 +60,15 @@ public class Sphere extends RadialGeometry {
         double t1 = alignZero(tm - th); // distance to first intersection
         double t2 = alignZero(tm + th); // distance to second intersection
 
-        // Both points are in front of the ray origin
-        if (t1 > 0 && t2 > 0)
-            return List.of(new Intersection(this, ray.getPoint(t1)), new Intersection(this, ray.getPoint(t2)));
+        // Build list only from valid t values (positive and within maxDistance)
+        List<Intersection> intersections = new LinkedList<>();
 
-        // Only one point is in front of the ray origin
-        if (t1 > 0)
-            return List.of(new Intersection(this, ray.getPoint(t1)));
+        if (t1 > 0 && alignZero(t1 - maxDistance) <= 0)
+            intersections.add(new Intersection(this, ray.getPoint(t1)));
 
-        if (t2 > 0)
-            return List.of(new Intersection(this, ray.getPoint(t2)));
+        if (t2 > 0 && alignZero(t2 - maxDistance) <= 0)
+            intersections.add(new Intersection(this, ray.getPoint(t2)));
 
-        // Both points are behind the ray origin
-        return null;
+        return intersections.isEmpty() ? null : intersections;
     }
 }

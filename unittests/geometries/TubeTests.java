@@ -352,6 +352,45 @@ class TubeTests {
         assertNull(result, "Bad intersections");
     }
 
+    /**
+     * Test method for {@link Tube#calculateIntersections(Ray, double)}.
+     * Verifies filtering of intersection points based on maxDistance.
+     */
+    @Test
+    void testCalculateIntersectionsWithMaxDistance() {
+        Tube tube = new Tube(1, new Ray(new Point(0, 0, 0), new Vector(0, 0, 1)));
+
+        // TC01: Ray intersects the tube, and intersection is within maxDistance
+        Ray ray1 = new Ray(new Point(2, 0, -1), new Vector(-1, 0, 1)); // Hits side at (1,0,0)
+        var result1 = tube.calculateIntersections(ray1, 3);
+        assertNotNull(result1, "TC01: Expected intersection within maxDistance");
+        assertEquals(1, result1.size(), "TC01: Expected one intersection");
+
+        // TC02: Same ray, but maxDistance too small → no result
+        var result2 = tube.calculateIntersections(ray1, 0.5);
+        assertNull(result2, "TC02: Expected no intersection due to small maxDistance");
+
+        // TC03: Ray intersects at a point exactly at the maxDistance limit
+        double dist = new Point(2, 0, -1).distance(new Point(1, 0, 0)); // distance to intersection
+        var result3 = tube.calculateIntersections(ray1, dist);
+        assertNotNull(result3, "TC03: Expected intersection exactly at maxDistance");
+
+        // TC04: Ray misses the tube → null
+        Ray ray2 = new Ray(new Point(2, 2, 0), new Vector(1, 0, 0));
+        var result4 = tube.calculateIntersections(ray2, 10);
+        assertNull(result4, "TC04: Expected no intersection");
+
+        // TC05: Ray grazes the surface tangentially → no intersection
+        Ray ray3 = new Ray(new Point(1, 1, 0), new Vector(0, 1, 0));
+        var result5 = tube.calculateIntersections(ray3, 10);
+        assertNull(result5, "TC05: Tangent ray should not intersect");
+
+        // TC06: Ray starts at the axis center and goes outward → intersection valid
+        Ray ray4 = new Ray(new Point(0, 0, 0), new Vector(1, 0, 0));
+        var result6 = tube.calculateIntersections(ray4, 1.5);
+        assertNotNull(result6, "TC06: Expected intersection from inside tube");
+        assertEquals(1, result6.size(), "TC06: Expected one intersection");
+    }
 
 
 }

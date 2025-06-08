@@ -57,8 +57,13 @@ public class Tube extends RadialGeometry {
 
 
 
-    @Override
-    public List<Intersection> calculateIntersectionsHelper(Ray ray) {
+    /**
+     * Computes intersection distances (t values) between the ray and the infinite tube surface.
+     *
+     * @param ray the ray to intersect
+     * @return list of valid t values (positive only), or empty list if no intersection
+     */
+    private List<Double> findTubeIntersectionTs(Ray ray) {
         Point P0 = ray.getHead();           // Ray origin
         Vector v = ray.getDirection();      // Ray direction
 
@@ -73,59 +78,54 @@ public class Tube extends RadialGeometry {
 
         try {
             if (!isZero(Vva))
-                VecA = v.subtract(Va.scale(Vva)); // Vector component perpendicular to axis
+                VecA = v.subtract(Va.scale(Vva));
 
-            // A = ||v - (v ⋅ Va)Va||^2
             A = VecA.lengthSquared();
         } catch (IllegalArgumentException ex) {
-            // v parallel to Va → A = 0 → no intersections
-            return null;
+            return List.of(); // Ray is parallel to tube axis → no intersection
         }
 
         try {
-            // Compute deltaP = P0 - Pa
-            Vector DeltaP = P0.subtract(Pa);
+            Vector deltaP = P0.subtract(Pa);
+            Vector deltaPMinusVa = deltaP;
+            double deltaPva = deltaP.dotProduct(Va);
 
-            // Compute: DeltaP - (DeltaP ⋅ Va) * Va
-            Vector DeltaPMinusDeltaPVaVa = DeltaP;
-            double DeltaPVa = DeltaP.dotProduct(Va);
+            if (!isZero(deltaPva))
+                deltaPMinusVa = deltaP.subtract(Va.scale(deltaPva));
 
-            if (!isZero(DeltaPVa))
-                DeltaPMinusDeltaPVaVa = DeltaP.subtract(Va.scale(DeltaPVa));
-
-            // B = 2 * [(v - (v ⋅ Va)Va) ⋅ (DeltaP - (DeltaP ⋅ Va)Va)]
-            B = 2 * (VecA.dotProduct(DeltaPMinusDeltaPVaVa));
-
-            // C = ||DeltaP - (DeltaP ⋅ Va)Va||^2 - r^2
-            C = DeltaPMinusDeltaPVaVa.lengthSquared() - radius * radius;
-
+            B = 2 * VecA.dotProduct(deltaPMinusVa);
+            C = deltaPMinusVa.lengthSquared() - radius * radius;
         } catch (IllegalArgumentException ex) {
-            // Case: DeltaP is zero or colinear → fallback values
             B = 0;
             C = -1 * radius * radius;
         }
 
-        // Solve the quadratic equation: At^2 + Bt + C = 0
-        double Disc = alignZero(B * B - 4 * A * C); // Discriminant
+        // Solve the quadratic equation At² + Bt + C = 0
+        double discriminant = alignZero(B * B - 4 * A * C);
+        if (discriminant <= 0) return List.of(); // No real solutions
 
-        if (Disc <= 0)
-            return null; // No real solutions
+        double sqrtDisc = Math.sqrt(discriminant);
+        double t1 = alignZero((-B + sqrtDisc) / (2 * A));
+        double t2 = alignZero((-B - sqrtDisc) / (2 * A));
 
-        double t1, t2;
+        List<Double> result = new LinkedList<>();
+        if (t1 > 0) result.add(t1);
+        if (t2 > 0 && !isZero(t2 - t1)) result.add(t2); // Avoid duplicates
+        return result;
+    }
 
-        // Compute the two roots
-        t1 = alignZero((-B + Math.sqrt(Disc)) / (2 * A));
-        t2 = alignZero((-B - Math.sqrt(Disc)) / (2 * A));
-
+    @Override
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray, double maxDistance) {
+        List<Double> ts = findTubeIntersectionTs(ray);
         List<Intersection> intersections = new LinkedList<>();
 
-        // Add valid (positive) intersection points
-        if (t1 > 0)
-            intersections.add(new Intersection(this, ray.getPoint(t1)));
-        if (t2 > 0 && !isZero(t2 - t1))
-            intersections.add(new Intersection(this, ray.getPoint(t2))); // Avoid duplicates
+        for (double t : ts) {
+            if (alignZero(t - maxDistance) <= 0) {
+                intersections.add(new Intersection(this, ray.getPoint(t)));
+            }
+        }
 
-        // Check if the intersections list is empty
         return intersections.isEmpty() ? null : intersections;
     }
+
 }

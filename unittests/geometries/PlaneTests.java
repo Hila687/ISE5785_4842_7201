@@ -3,6 +3,8 @@ package geometries;
 import org.junit.jupiter.api.Test;
 import primitives.*;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -144,5 +146,58 @@ class PlaneTests {
         // TC17: Ray starts exactly at the reference point Q0
         Ray ray9 = new Ray(new Point(0, 0, 1), new Vector(1, 2, -3));
         assertNull(plane.findIntersections(ray9), "Ray starts at Q0 and goes out, should return null");
+    }
+
+    /**
+     * Test method for {@link Plane#calculateIntersections(Ray, double)}.
+     * Validates behavior under maxDistance constraint.
+     */
+    @Test
+    void testCalculateIntersectionsWithMaxDistance() {
+        // TC21: Intersection point is within maxDistance
+        Plane plane1 = new Plane(
+                new Point(0, 0, 1),
+                new Point(1, 0, 1),
+                new Point(0, 1, 1)
+        );
+        Ray ray1 = new Ray(new Point(0, 0, 0), new Vector(0, 0, 1));
+        double maxDistance1 = 2.0;
+        List<Intersectable.Intersection> result1 = plane1.calculateIntersections(ray1, maxDistance1);
+        assertNotNull(result1, "TC21: Expected intersection within maxDistance");
+        assertEquals(1, result1.size(), "TC21: Should have one intersection point");
+
+        // TC22: Intersection point is beyond maxDistance
+        Plane plane2 = new Plane(
+                new Point(0, 0, 10),
+                new Point(1, 0, 10),
+                new Point(0, 1, 10)
+        );
+        Ray ray2 = new Ray(new Point(0, 0, 0), new Vector(0, 0, 1));
+        double maxDistance2 = 5.0;
+        List<Intersectable.Intersection> result2 = plane2.calculateIntersections(ray2, maxDistance2);
+        assertNull(result2, "TC22: Expected no intersection beyond maxDistance");
+
+        // TC23: Intersection point is exactly at maxDistance
+        Plane plane3 = new Plane(
+                new Point(0, 0, 5),
+                new Point(1, 0, 5),
+                new Point(0, 1, 5)
+        );
+        Ray ray3 = new Ray(new Point(0, 0, 0), new Vector(0, 0, 1));
+        double maxDistance3 = 5.0;
+        List<Intersectable.Intersection> result3 = plane3.calculateIntersections(ray3, maxDistance3);
+        assertNotNull(result3, "TC23: Expected intersection exactly at maxDistance");
+        assertEquals(1, result3.size(), "TC23: Should return the point on the edge");
+
+        // TC24: Ray is parallel to the plane — should return null
+        Plane plane4 = new Plane(
+                new Point(0, 0, 1),
+                new Point(1, 0, 1),
+                new Point(0, 1, 1)
+        );
+        Ray ray4 = new Ray(new Point(0, 0, 0), new Vector(1, 0, 0));
+        double maxDistance4 = 100;
+        List<Intersectable.Intersection> result4 = plane4.calculateIntersections(ray4, maxDistance4);
+        assertNull(result4, "TC24: Ray is parallel to the plane – should return null");
     }
 }

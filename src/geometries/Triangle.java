@@ -27,41 +27,40 @@ public class Triangle extends Polygon {
         super(p1, p2, p3);
     }
 
-
-
-
     @Override
-    public List<Intersection> calculateIntersectionsHelper(Ray ray) {
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray, double maxDistance) {
         // First, check intersection with the triangle's supporting plane
         Point intersection = plane.findIntersectionsPoint(ray);
         if (intersection == null) {
             return null; // No intersection with the plane → no intersection with triangle
         }
 
+        // Check if intersection is within maxDistance
+        double t = ray.getHead().distance(intersection);
+        if (alignZero(t - maxDistance) > 0) {
+            return null; // Intersection is beyond maxDistance
+        }
+
         Point p0 = ray.getHead();      // Ray origin
         Vector dir = ray.getDirection(); // Ray direction
 
-        // Create vectors from ray origin to each of the triangle's vertices
         Vector v1 = vertices.get(0).subtract(p0);
         Vector v2 = vertices.get(1).subtract(p0);
         Vector v3 = vertices.get(2).subtract(p0);
 
-        // Compute normals to the triangle edges (via cross product)
         Vector n1 = v1.crossProduct(v2).normalize();
         Vector n2 = v2.crossProduct(v3).normalize();
         Vector n3 = v3.crossProduct(v1).normalize();
 
-        // Compute dot products of ray direction with each normal
         double s1 = alignZero(dir.dotProduct(n1));
         double s2 = alignZero(dir.dotProduct(n2));
         double s3 = alignZero(dir.dotProduct(n3));
 
-        // Check if all dot products have the same sign (point lies inside triangle)
         if ((s1 > 0 && s2 > 0 && s3 > 0) || (s1 < 0 && s2 < 0 && s3 < 0)) {
-            // Valid intersection within triangle boundaries
             return List.of(new Intersection(this, intersection));
         }
 
-        return null; // Intersection point is outside the triangle
+        return null;
     }
+
 }

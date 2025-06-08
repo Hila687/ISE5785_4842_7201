@@ -140,4 +140,46 @@ class PolygonTests {
       Ray rayVertex = new Ray(new Point(1, 1, -1), DIRECTION_UP);
       assertNull(polygon.findIntersections(rayVertex), "Ray on polygon vertex is not considered inside");
    }
+
+   /**
+    * Test method for {@link Polygon#calculateIntersections(Ray, double)}.
+    * Verifies correct handling of maxDistance filtering for polygon intersections.
+    */
+   @Test
+   void testCalculateIntersectionsWithMaxDistance() {
+      Polygon polygon = new Polygon(
+              new Point(1, 1, 1),
+              new Point(-1, 1, 1),
+              new Point(-1, -1, 1),
+              new Point(1, -1, 1)
+      );
+
+      // TC01: Ray intersects inside the polygon within maxDistance
+      Ray ray1 = new Ray(new Point(0, 0, -1), new Vector(0, 0, 1));
+      var result1 = polygon.calculateIntersections(ray1, 5);
+      assertNotNull(result1, "TC01: Expected intersection within maxDistance");
+      assertEquals(1, result1.size(), "TC01: Expected one intersection");
+
+      // TC02: Intersection exists but distance is beyond maxDistance
+      var result2 = polygon.calculateIntersections(ray1, 0.5);
+      assertNull(result2, "TC02: Expected no intersection due to small maxDistance");
+
+      // TC03: Intersection exactly at maxDistance
+      double exactDistance = new Point(0, 0, -1).distance(new Point(0, 0, 1));
+      var result3 = polygon.calculateIntersections(ray1, exactDistance);
+      assertNotNull(result3, "TC03: Expected intersection exactly at maxDistance");
+
+      // TC04: Ray misses the polygon
+      Ray rayMiss = new Ray(new Point(2, 2, -1), new Vector(0, 0, 1));
+      assertNull(polygon.calculateIntersections(rayMiss, 10), "TC04: Expected no intersection");
+
+      // TC05: Ray intersects exactly on polygon edge – should return null
+      Ray rayEdge = new Ray(new Point(1, 0, -1), new Vector(0, 0, 1));
+      assertNull(polygon.calculateIntersections(rayEdge, 10), "TC05: Ray on edge should not count");
+
+      // TC06: Ray intersects at polygon vertex – should return null
+      Ray rayVertex = new Ray(new Point(1, 1, -1), new Vector(0, 0, 1));
+      assertNull(polygon.calculateIntersections(rayVertex, 10), "TC06: Ray on vertex should not count");
+   }
+
 }

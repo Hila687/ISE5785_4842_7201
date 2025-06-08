@@ -97,43 +97,64 @@ public class Polygon extends Geometry {
 
 
 
-    @Override
-    public List<Intersection> calculateIntersectionsHelper(Ray ray) {
-        // Step 1: check intersection with the plane
+    /**
+     * Finds the intersection point between the ray and the polygon,
+     * only if the intersection lies within the polygon boundaries.
+     *
+     * @param ray the ray to test
+     * @return list with a single intersection point, or null if none
+     */
+    private List<Point> findPolygonIntersections(Ray ray) {
+        // Step 1: Check intersection with the polygon's supporting plane
         Point intersection = plane.findIntersectionsPoint(ray);
-        if (intersection == null) {
-            return null;
-        }
+        if (intersection == null) return null;
 
-        Point p0 = ray.getHead();
-        Vector dir = ray.getDirection();
+        Point p0 = ray.getHead();       // Ray origin
+        Vector dir = ray.getDirection(); // Ray direction
 
         int size = vertices.size();
-        Vector v1 = vertices.get(size - 1).subtract(p0);
-        Vector v2 = vertices.getFirst().subtract(p0);
+        Vector v1 = vertices.get(size - 1).subtract(p0); // last vertex to origin
+        Vector v2 = vertices.getFirst().subtract(p0);    // first vertex to origin
 
-        // first cross product
+        // Compute initial normal and sign
         Vector n = v1.crossProduct(v2).normalize();
         double sign = alignZero(dir.dotProduct(n));
-
         if (isZero(sign)) return null;
 
         boolean positive = sign > 0;
 
-        // Step 2: check all edges
+        // Step 2: Check all edges for consistent orientation
         for (int i = 1; i < size; i++) {
             v1 = v2;
             v2 = vertices.get(i).subtract(p0);
             n = v1.crossProduct(v2).normalize();
             sign = alignZero(dir.dotProduct(n));
 
+            // If sign is zero or inconsistent, point is outside
             if (isZero(sign) || (sign > 0) != positive) {
-                return null; // point is outside the polygon
+                return null;
             }
         }
 
-        // If we reach here, the intersection point is valid and lies within the polygon
-        return List.of(new Intersection(this, intersection));
-
+        // Point is inside polygon
+        return List.of(intersection);
     }
+
+    @Override
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray, double maxDistance) {
+        // Use helper to compute geometric intersection
+        List<Point> intersections = findPolygonIntersections(ray);
+        if (intersections == null || intersections.isEmpty()) {
+            return null;
+        }
+
+        // Check if the intersection is within the allowed distance
+        double distance = alignZero(intersections.getFirst().distance(ray.getHead()));
+        if (distance > maxDistance) return null;
+
+        // Return the valid intersection
+        return List.of(new Intersection(this, intersections.getFirst()));
+    }
+
+
 }
