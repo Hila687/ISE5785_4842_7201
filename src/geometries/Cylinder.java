@@ -64,8 +64,9 @@ public class Cylinder extends Tube {
         // Otherwise → point is on the side surface, use Tube's logic
         return super.getNormal(p);
     }
+
     @Override
-    public List<Intersection> calculateIntersectionsHelper(Ray ray) {
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray, double maxDistance) {
         List<Intersection> result = new LinkedList<>();
 
         Point p0 = ray.getHead();
@@ -80,35 +81,41 @@ public class Cylinder extends Tube {
 
         // Special case: ray starts at bottom center and goes exactly along the axis direction
         if (rayAlongAxis && axisDir.equals(v)) {
-            result.add(new Intersection(this, axisP1));
-            return result;
+            if (alignZero(axisP1.distance(p0) - maxDistance) <= 0) {
+                result.add(new Intersection(this, axisP1));
+            }
+            return result.isEmpty() ? null : result;
         }
 
         // === 1. Intersections with the curved side (tube) ===
-        List<Intersection> sideHits = super.calculateIntersectionsHelper(ray);
+        List<Intersection> sideHits = super.calculateIntersectionsHelper(ray, maxDistance);
         if (sideHits != null) {
             for (Intersection hit : sideHits) {
                 double t = alignZero(hit.point.subtract(axisP0).dotProduct(axisDir));
-                if (t >= 0 && t <= height) {
+                if (t >= 0 && t <= height &&
+                        alignZero(p0.distance(hit.point) - maxDistance) <= 0) {
                     result.add(new Intersection(this, hit.point));
                 }
             }
         }
 
-        // === 2. Intersection with bottom base (unless ray starts exactly there) ===
+        // === 2. Intersection with bottom base ===
         if (!rayStartsAtBottomCenter) {
             Plane bottom = new Plane(axisP0, axisDir);
             List<Point> bottomHits = bottom.findIntersections(ray);
             if (bottomHits != null) {
                 Point p = bottomHits.getFirst();
                 if (!isZero(p.subtract(p0).lengthSquared()) &&
-                        alignZero(p.subtract(axisP0).lengthSquared() - radius * radius) <= 0) {
+                        alignZero(p.subtract(axisP0).lengthSquared() - radius * radius) <= 0 &&
+                        alignZero(p0.distance(p) - maxDistance) <= 0) {
                     result.add(new Intersection(this, p));
                 }
             }
         } else if (!rayAlongAxis) {
             // Special case: ray starts at center but not along axis – consider it as hitting bottom
-            result.add(new Intersection(this, axisP0));
+            if (alignZero(p0.distance(axisP0) - maxDistance) <= 0) {
+                result.add(new Intersection(this, axisP0));
+            }
         }
 
         // === 3. Intersection with top base ===
@@ -117,7 +124,8 @@ public class Cylinder extends Tube {
         if (topHits != null) {
             Point p = topHits.getFirst();
             if (!isZero(p.subtract(p0).lengthSquared()) &&
-                    alignZero(p.subtract(axisP1).lengthSquared() - radius * radius) <= 0) {
+                    alignZero(p.subtract(axisP1).lengthSquared() - radius * radius) <= 0 &&
+                    alignZero(p0.distance(p) - maxDistance) <= 0) {
                 result.add(new Intersection(this, p));
             }
         }

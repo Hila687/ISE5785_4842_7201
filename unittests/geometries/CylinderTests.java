@@ -98,4 +98,49 @@ class CylinderTests {
         // Expected behavior (based on implementation): return base normal (upward)
         assertEquals(new Vector(0, 0, 1), normal, "Bad normal on edge (top)");
     }
+
+    /**
+     * Additional tests for {@link geometries.Cylinder#calculateIntersections(Ray, double)}
+     * to verify proper filtering using maxDistance (Bonus 3 – Option 2).
+     */
+    @Test
+    void testCalculateIntersectionsWithMaxDistance() {
+        // Cylinder: axis along X-axis from (1,0,0) to (2,0,0), radius = 1
+        Cylinder cylinder = new Cylinder(1, new Ray(new Point(1, 0, 0), new Vector(1, 0, 0)), 1);
+
+        // Ray from Z-, through the center of curved surface
+        Ray ray = new Ray(new Point(1.5, 0, -2), new Vector(0, 0, 1));
+        var fullResults = cylinder.calculateIntersections(ray, 10);
+        assertNotNull(fullResults, "Expected intersections with full maxDistance");
+        assertEquals(2, fullResults.size(), "Expected 2 intersections (curved surface)");
+
+        double dist1 = fullResults.get(0).point.distance(ray.getHead());
+        double dist2 = fullResults.get(1).point.distance(ray.getHead());
+
+        // TC01: maxDistance > both → return both
+        var result1 = cylinder.calculateIntersections(ray, 5);
+        assertNotNull(result1, "Should detect both intersections");
+        assertEquals(2, result1.size(), "Expected 2 intersections");
+
+        // TC02: maxDistance just below first → none
+        var result2 = cylinder.calculateIntersections(ray, dist1 - 0.01);
+        assertTrue(result2 == null || result2.isEmpty(), "Expected no intersections");
+
+        // TC03: maxDistance = first → one intersection
+        var result3 = cylinder.calculateIntersections(ray, dist1);
+        assertEquals(1, result3.size(), "Expected one intersection (first)");
+
+        // TC04: maxDistance between both → only one
+        var result4 = cylinder.calculateIntersections(ray, (dist1 + dist2) / 2);
+        assertEquals(1, result4.size(), "Expected one intersection (only first)");
+
+        // TC05: maxDistance = second → return both
+        var result5 = cylinder.calculateIntersections(ray, dist2);
+        assertEquals(2, result5.size(), "Expected both intersections on edge");
+
+        // TC06: maxDistance = 0 → no intersection
+        var result6 = cylinder.calculateIntersections(ray, 0);
+        assertTrue(result6 == null || result6.isEmpty(), "Expected no intersections with distance = 0");
+    }
+
 }
