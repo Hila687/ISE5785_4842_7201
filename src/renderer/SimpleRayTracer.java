@@ -71,15 +71,12 @@ public class SimpleRayTracer extends RayTracerBase {
      */
     @Override
     public Color traceRay(Ray ray) {
-        //System.out.println("🎯 traceRay fired");
 
         Intersection closestIntersection = findClosestIntersection(ray);
         if (closestIntersection == null) {
-            //System.out.println("🌌 No intersection found");
             return scene.backgroundColor;
         }
 
-        //System.out.println("✅ Intersection with: " + closestIntersection.geometry.getClass().getSimpleName());
         return calcColor(closestIntersection, ray);
     }
 
@@ -141,6 +138,7 @@ public class SimpleRayTracer extends RayTracerBase {
      */
     private boolean unshaded(Intersection intersection) {
 
+
         // Create a vector from the intersection point to the light source
         Vector lightDirection = intersection.lightDirection.scale(-1);
 
@@ -189,7 +187,6 @@ public class SimpleRayTracer extends RayTracerBase {
 
         Double3 kT = Double3.ONE; // Start with full transparency
         double lightDistance = intersection.light.getDistance(intersection.point);
-
         // Loop through all shadow ray intersections
         for (Intersection shadowIntersection : shadowIntersections) {
             double intersectionDistance = shadowIntersection.point.distance(intersection.point);
