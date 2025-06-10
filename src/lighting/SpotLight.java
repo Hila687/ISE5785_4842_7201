@@ -79,6 +79,24 @@ public class SpotLight extends PointLight {
     }
 
     /**
+     * Returns the direction vector of the spotlight.
+     *
+     * @return the normalized direction vector
+     */
+    public Vector getDirection() {
+        return direction;
+    }
+
+    /**
+     * Returns the narrow beam factor, which determines how focused the spotlight is.
+     *
+     * @return the narrow beam factor
+     */
+    public double getNarrowBeam() {
+        return narrowBeam;
+    }
+
+    /**
      * Returns the light intensity at a given point, considering both distance attenuation
      * and spotlight direction (beam focus).
      *

@@ -32,20 +32,44 @@ public abstract class Intersectable {
      * @param ray the ray to intersect with
      * @return list of Intersection objects, or null if there are none
      */
-    protected abstract List<Intersection> calculateIntersectionsHelper(Ray ray);
+    protected  List<Intersection> calculateIntersectionsHelper(Ray ray)
+    {
+        // Calls the main intersection calculation method with no distance limit
+        return calculateIntersectionsHelper(ray, Double.POSITIVE_INFINITY);
+    }
 
     /**
-     * Finds the full intersection details (geometry, point, etc.) of a ray with this geometry.
-     * Uses the subclass's implementation of the helper method and performs null/empty filtering.
+     * Calculates full intersection data (geometry, point, material, etc.).
+     * Calls a helper method implemented by subclasses.
      *
-     * @param ray the ray to intersect with the geometry
-     * @return a list of Intersection objects, or null if no intersections were found
+     * @param ray the ray to check
+     * @return a list of intersections, or null if none
      */
     public final List<Intersection> calculateIntersections(Ray ray) {
-        List<Intersection> intersections = calculateIntersectionsHelper(ray);
-        // Return null instead of empty list to match course convention
-        return (intersections == null || intersections.isEmpty()) ? null : intersections;
+        return calculateIntersections(ray, Double.POSITIVE_INFINITY);
     }
+
+    /**
+     * Calculates full intersection data with a maximum distance constraint.
+     * This is useful for performance optimizations like shadows and transparency.
+     *
+     * @param ray the ray to check
+     * @param maxDistance the maximum allowed distance for intersections
+     * @return a list of intersections within the given distance, or null if none
+     */
+    public final List<Intersection> calculateIntersections(Ray ray, double maxDistance) {
+        return calculateIntersectionsHelper(ray, maxDistance);
+    }
+
+    /**
+     * Abstract helper method that calculates intersections up to a max distance.
+     * Must be implemented by all geometries that support intersection logic.
+     *
+     * @param ray the ray to check
+     * @param maxDistance the maximum allowed distance for intersections
+     * @return a list of intersections or null if none
+     */
+    protected abstract List<Intersection> calculateIntersectionsHelper(Ray ray, double maxDistance);
 
     /**
      * Intersection represents a detailed result of a ray intersecting a geometry.

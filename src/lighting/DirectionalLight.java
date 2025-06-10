@@ -49,8 +49,32 @@ public class DirectionalLight extends Light implements LightSource {
         return direction;
     }
 
+    /**
+     * Since directional light is from infinite distance, always returns infinity.
+     * @param point the point in space (ignored)
+     * @return positive infinity
+     */
     @Override
     public double getDistance(Point point) {
         return Double.POSITIVE_INFINITY;
+    }
+
+    /**
+     * Returns infinity to indicate directional light is not a localized area source.
+     * @return positive infinity
+     */
+    @Override
+    public double getRadius() {
+        return Double.POSITIVE_INFINITY;
+    }
+
+    /**
+     * Returns the position of the light source.
+     * For directional light, this is not applicable, so returns null.
+     * @return null since directional light has no specific position
+     */
+    @Override
+    public Point getPosition() {
+        return null; // Directional light does not have a position
     }
 }

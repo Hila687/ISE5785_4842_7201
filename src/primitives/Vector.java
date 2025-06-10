@@ -1,6 +1,8 @@
 package primitives;
 
 
+import static primitives.Util.isZero;
+
 /**
  * Represents a 3D vector in space, defined by its direction and magnitude.
  * Inherits coordinate storage from {@link Point} (internally a {@link Double3}),
@@ -144,6 +146,14 @@ public class Vector extends Point {
                 xyz.d3() * other.xyz.d1() - xyz.d1() * other.xyz.d3(),
                 xyz.d1() * other.xyz.d2() - xyz.d2() * other.xyz.d1()
         );
+    }
+
+    public Vector createOrthogonal() {
+        if (!isZero(this.xyz.d1()) || !isZero(this.xyz.d2())) {
+            return this.crossProduct(AXIS_Z);
+        } else {
+            return this.crossProduct(AXIS_X);
+        }
     }
 }
 

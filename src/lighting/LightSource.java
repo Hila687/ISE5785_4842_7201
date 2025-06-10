@@ -36,4 +36,16 @@ public interface LightSource {
      * @return the distance from the light source to the point
      */
     double getDistance(Point point);
+
+    /**
+     * Returns the radius of the light source area for soft shadows.
+     * Default is 0 for non-area lights.
+     *
+     * @return the radius of the light source area
+     */
+    default double getRadius() {
+        return 0;
+    }
+
+    Point getPosition();
 }

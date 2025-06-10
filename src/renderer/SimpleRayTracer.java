@@ -1,7 +1,8 @@
 package renderer;
 
+import geometries.Intersectable;
 import geometries.Intersectable.Intersection;
-import lighting.LightSource;
+import lighting.*;
 import primitives.*;
 import scene.Scene;
 
@@ -28,6 +29,8 @@ public class SimpleRayTracer extends RayTracerBase {
     /** Initial value for color calculations, used to avoid zero values */
     private static final Double3 INITIAL_K = Double3.ONE;
 
+    private int softShadowSamples = 15;
+
 
     /**
      * Constructs a SimpleRayTracer with the given scene.
@@ -36,6 +39,17 @@ public class SimpleRayTracer extends RayTracerBase {
      */
     public SimpleRayTracer(Scene scene) {
         super(scene);
+    }
+
+    /**
+     * Set the number of samples for soft shadows
+     *
+     * @param n the number of samples
+     * @return the current instance of SimpleRayTracer
+     */
+    public SimpleRayTracer setSoftShadowSamples(int n) {
+        this.softShadowSamples = n;
+        return this;
     }
 
     /**
@@ -120,7 +134,7 @@ public class SimpleRayTracer extends RayTracerBase {
             return Color.BLACK;
         }
 
-        Color localEffects = calcColorLocalEffects(intersection); // או עם k אם עדכנת
+        Color localEffects = calcColorLocalEffects(intersection);
         Color globalEffects = calcGlobalEffects(intersection, level, k);
 
         return localEffects.add(globalEffects);
@@ -139,7 +153,7 @@ public class SimpleRayTracer extends RayTracerBase {
     private boolean unshaded(Intersection intersection) {
 
 
-        // Create a vector from the intersection point to the light source
+        // Flip light direction: from point toward light source
         Vector lightDirection = intersection.lightDirection.scale(-1);
 
         // Construct a shadow ray from the intersection point toward the light
@@ -150,7 +164,7 @@ public class SimpleRayTracer extends RayTracerBase {
         double lightDistance = intersection.light.getDistance(intersection.point);
 
         // Find all geometries intersected by the shadow ray
-        List<Intersection> intersections = scene.geometries.calculateIntersections(lightRay);
+        List<Intersection> intersections = scene.geometries.calculateIntersections(lightRay, lightDistance);
 
         // If there are no objects in the way, the point is illuminated
         if (intersections == null) return true;
@@ -170,6 +184,15 @@ public class SimpleRayTracer extends RayTracerBase {
         return true;
     }
 
+
+    /**
+     * Calculates the transparency of the intersection point.
+     * This method checks if the point is in shadow by casting a shadow ray
+     * towards the light source and checking for intersections with other geometries.
+     *
+     * @param intersection the intersection point to check
+     * @return the transparency factor (0 = fully blocked, 1 = fully transparent)
+     */
     private Double3 transparency(Intersection intersection) {
         // Calculate the direction from the intersection point to the light source
         Vector lightDirection = intersection.lightDirection.scale(-1);
@@ -205,6 +228,69 @@ public class SimpleRayTracer extends RayTracerBase {
 
         return kT; // Return the cumulative transparency
     }
+
+
+
+    private Double3 transparency(Intersection intersection, int numberOfSamples) {
+        if (intersection.light.getRadius() == 0 ||
+                intersection.light.getPosition() == null ||
+                numberOfSamples <= 1) {
+            return transparency(intersection);
+        }
+        Vector l = intersection.lightDirection;
+        Vector vUp = l.createOrthogonal();
+        Vector vRight = vUp.crossProduct(l);
+
+        Board board = new Board(
+                intersection.light.getPosition(),
+                vUp, vRight,
+                intersection.light.getRadius() * 2
+        ).setCircle(true);
+
+        List<Point> lightSamples = board.getPoints(36 );
+        Double3 ktrSum = Double3.ZERO;
+        int contributingSamples = 0;
+
+        for (Point areaLightPoint : lightSamples) {
+            Vector areaLightDir = areaLightPoint.subtract(intersection.point).normalize();
+            if (intersection.nl <= 0)
+                continue;
+            double lightDist = intersection.point.distance(areaLightPoint);
+
+            Ray shadowRay = new Ray(intersection.point, areaLightDir, intersection.normal);
+            List<Intersection> shadowHits = scene.geometries.calculateIntersections(shadowRay, lightDist);
+            Double3 ktr = Double3.ONE;
+            if (shadowHits != null) {
+                for (Intersection hit : shadowHits) {
+                    ktr = ktr.product(hit.material.kT);
+                    if (ktr.lowerThan(MIN_CALC_COLOR_K)) {
+                        ktr = Double3.ZERO;
+                        break;
+                    }
+                }
+            }
+            ktrSum = ktrSum.add(ktr);
+            contributingSamples++;
+        }
+        if (contributingSamples == 0)
+            return Double3.ZERO;
+        return ktrSum.reduce(lightSamples.size());
+    }
+
+    private boolean unshaded(Intersection intersection, LightSource light) {
+        Vector l = light.getL(intersection.point);
+        Vector n = intersection.geometry.getNormal(intersection.point);
+
+        Ray shadowRay = new Ray(intersection.point, l, n);
+        double lightDistance = light.getDistance(intersection.point);
+
+        var intersections = scene.geometries
+                .calculateIntersections(shadowRay, lightDistance);
+
+        return intersections == null || intersections.isEmpty();
+    }
+
+
 
     /**
      * Constructs a reflected ray from the given intersection point.
@@ -306,8 +392,12 @@ public class SimpleRayTracer extends RayTracerBase {
                 continue;
             }
 
+            Double3 kT;
             // Get the transparency level of the point
-            Double3 kT = transparency(intersection);
+            if (intersection.light.getRadius()== 0)
+                 kT = transparency(intersection);
+            else
+                 kT = transparency(intersection, softShadowSamples);
 
             // Skip this light source if the point is fully blocked
             if (kT.equals(Double3.ZERO)) {

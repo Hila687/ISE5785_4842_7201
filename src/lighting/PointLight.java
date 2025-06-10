@@ -23,6 +23,10 @@ public class PointLight extends Light implements LightSource {
     /** Quadratic attenuation factor (default: 0) */
     private double kQ = 0;
 
+    /** Radius of the light source area for soft shadows (default: 0) */
+    private double radius = 0;
+
+
     /**
      * Constructs a point light with the given intensity and position.
      *
@@ -32,6 +36,14 @@ public class PointLight extends Light implements LightSource {
     public PointLight(Color intensity, Point position) {
         super(intensity);
         this.position = position;
+    }
+
+    /**
+     * Returns the position of the point light source.
+     * @return the light's position
+     */
+    public Point getPosition() {
+        return position;
     }
 
     /**
@@ -94,5 +106,25 @@ public class PointLight extends Light implements LightSource {
     @Override
     public double getDistance(Point point) {
         return position.distance(point);
+    }
+
+    /**
+     * Sets the radius of the light source area for soft shadows.
+     * @param radius the radius value to set
+     * @return this light (for method chaining)
+     */
+    public PointLight setRadius(double radius) {
+        this.radius = radius;
+        return this;
+    }
+
+    /**
+     * Gets the radius of the light source area.
+     * Used for soft shadows calculation.
+     * @return the radius
+     */
+    @Override
+    public double getRadius() {
+        return radius;
     }
 }
