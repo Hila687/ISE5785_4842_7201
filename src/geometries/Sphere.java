@@ -71,4 +71,16 @@ public class Sphere extends RadialGeometry {
 
         return intersections.isEmpty() ? null : intersections;
     }
+
+    @Override
+    public void setBoundingBox() {
+        // Create min and max points by subtracting/adding radius in each axis
+        Point min = center.add(new Vector(-radius, -radius, -radius));
+        Point max = center.add(new Vector(radius, radius, radius));
+
+        // Set the bounding box of the sphere
+        boundingBox = new BoundingBox(min, max);
+    }
+
+
 }

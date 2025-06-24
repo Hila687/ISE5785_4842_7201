@@ -156,5 +156,31 @@ public class Polygon extends Geometry {
         return List.of(new Intersection(this, intersections.getFirst()));
     }
 
+    @Override
+    public void setBoundingBox() {
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double minZ = Double.POSITIVE_INFINITY;
+
+        double maxX = Double.NEGATIVE_INFINITY;
+        double maxY = Double.NEGATIVE_INFINITY;
+        double maxZ = Double.NEGATIVE_INFINITY;
+
+        for (Point vertex : vertices) {
+            minX = Math.min(vertex.getX(), minX);
+            maxX = Math.max(vertex.getX(), maxX);
+            minY = Math.min(vertex.getY(), minY);
+            maxY = Math.max(vertex.getY(), maxY);
+            minZ = Math.min(vertex.getZ(), minZ);
+            maxZ = Math.max(vertex.getZ(), maxZ);
+        }
+
+        boundingBox =  new BoundingBox(
+                new Point(minX, minY, minZ),
+                new Point(maxX, maxY, maxZ)
+        );
+    }
+
+
 
 }

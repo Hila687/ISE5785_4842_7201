@@ -128,4 +128,10 @@ public class Tube extends RadialGeometry {
         return intersections.isEmpty() ? null : intersections;
     }
 
+    @Override
+    public void setBoundingBox() {
+        boundingBox = null;
+    }
+
+
 }

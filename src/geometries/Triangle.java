@@ -6,6 +6,7 @@ import primitives.Vector;
 
 import java.util.List;
 
+import static geometries.BoundingBox.*;
 import static primitives.Util.alignZero;
 
 /**

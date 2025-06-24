@@ -231,6 +231,15 @@ public class SimpleRayTracer extends RayTracerBase {
 
 
 
+    /**
+     * Calculates the transparency of the intersection point considering area lights.
+     * If the light source has a radius, it samples points on the light's surface
+     * to determine the average transparency.
+     *
+     * @param intersection the intersection point to check
+     * @param numberOfSamples the number of samples to take on the light's surface
+     * @return the average transparency factor (0 = fully blocked, 1 = fully transparent)
+     */
     private Double3 transparency(Intersection intersection, int numberOfSamples) {
         if (intersection.light.getRadius() == 0 ||
                 intersection.light.getPosition() == null ||
@@ -247,7 +256,7 @@ public class SimpleRayTracer extends RayTracerBase {
                 intersection.light.getRadius() * 2
         ).setCircle(true);
 
-        List<Point> lightSamples = board.getPoints(36 );
+        List<Point> lightSamples = board.getPoints(15);
         Double3 ktrSum = Double3.ZERO;
         int contributingSamples = 0;
 
@@ -492,5 +501,14 @@ public class SimpleRayTracer extends RayTracerBase {
         // Use the absolute value of the dot product to ensure non-negative light
         double absNl = Math.abs(intersection.nl);
         return intersection.material.KD.scale(absNl);
+    }
+
+    /**
+     * Returns the scene associated with this ray tracer.
+     *
+     * @return the scene
+     */
+    public Scene getScene() {
+        return this.scene;
     }
 }

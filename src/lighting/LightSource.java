@@ -47,5 +47,11 @@ public interface LightSource {
         return 0;
     }
 
+    /**
+     * Returns the position of the light source in space.
+     * This is used for point lights and spotlights.
+     *
+     * @return the position of the light source
+     */
     Point getPosition();
 }

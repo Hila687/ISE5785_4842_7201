@@ -102,4 +102,31 @@ public class Point {
     public int hashCode() {
         return xyz.hashCode();
     }
+
+    /**
+     * Retrieves the x-coordinate of this point/vector.
+     *
+     * @return The x-coordinate.
+     */
+    public double getX() {
+        return xyz.d1();
+    }
+
+    /**
+     * Retrieves the y-coordinate of this point/vector.
+     *
+     * @return The y-coordinate.
+     */
+    public double getY() {
+        return xyz.d2();
+    }
+
+    /**
+     * Retrieves the z-coordinate of this point/vector.
+     *
+     * @return The z-coordinate.
+     */
+    public double getZ() {
+        return xyz.d3();
+    }
 }

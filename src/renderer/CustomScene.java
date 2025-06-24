@@ -12,7 +12,7 @@ public class CustomScene {
     public static void main(String[] args) {
         // Step 1: יצירת סצנה
         Scene scene = new Scene("Custom Effects Scene")
-                .setBackground(new Color(20, 30, 50)) // רקע כהה
+                .setBackground(new Color(100, 30, 100)) // רקע כהה
                 .setAmbientLight(new AmbientLight(new Color(255, 255, 255).scale(0.1)));
 
         // Step 2: הוספת גיאומטריות
@@ -20,11 +20,11 @@ public class CustomScene {
                 // מישור משתקף
                 new Plane(new Point(0, -100, 0), new Vector(0, 1, 0))
                         .setEmission(new Color(40, 40, 40))
-                        .setMaterial(new Material().setKR(0.5)),
+                        .setMaterial(new Material().setKR(0.8)),
 
                 // כדור שקוף בלבד
                 new Sphere(30, new Point(-40, 0, -100))
-                        .setEmission(new Color(0, 100, 150))
+                        .setEmission(new Color(200, 80, 0))
                         .setMaterial(new Material().setKT(0.6).setKD(0.3).setKS(0.2).setShininess(100)),
 
                 // כדור משתקף בלבד
@@ -34,11 +34,11 @@ public class CustomScene {
 
                 // משולש אטום
                 new Triangle(
-                        new Point(-80, 40, -150),
-                        new Point(-20, 60, -150),
-                        new Point(-50, 100, -150)
-                ).setEmission(new Color(20, 80, 20))
-                        .setMaterial(new Material().setKD(0.7).setKS(0.3).setShininess(60))
+                        new Point(-80, -80, 70),
+                        new Point(-70, -90, -150),
+                        new Point(-121, -60, -150)
+                ).setEmission(new Color(20, 200, 20))
+                        .setMaterial(new Material().setKD(0).setKS(1).setShininess(60))
         );
 
         // Step 3: הוספת מקור אור
