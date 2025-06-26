@@ -14,6 +14,17 @@ import java.util.Objects;
 public abstract class Intersectable {
 
     /**
+     * every Intersectable composite have his bounding volume, which represented by a bounding box
+     */
+    protected BoundingBox boundingBox = null;
+
+    /**
+     * method sets the values of the bounding volume of the intersectable component
+     * this implementation is for constructing new bounding box if necessary/needed
+     */
+    public abstract void setBoundingBox();
+
+    /**
      * Finds the intersection points (as Point objects) of a ray with this geometry.
      * This method is a wrapper that returns only the points, not full intersection details.
      *
@@ -50,15 +61,19 @@ public abstract class Intersectable {
     }
 
     /**
-     * Calculates full intersection data with a maximum distance constraint.
-     * This is useful for performance optimizations like shadows and transparency.
+     * Calculates the intersections between a given ray and the geometry
+     * within a specified maximum distance.
+     * This method is intended to be overridden by subclasses to provide
+     * specific intersection logic.
      *
-     * @param ray the ray to check
-     * @param maxDistance the maximum allowed distance for intersections
-     * @return a list of intersections within the given distance, or null if none
+     * @param ray         The ray to check for intersections.
+     * @param maxDistance The maximum distance to consider for intersections.
+     * @return A list of intersection points, or an empty list if there are no intersections.
      */
     public final List<Intersection> calculateIntersections(Ray ray, double maxDistance) {
-        return calculateIntersectionsHelper(ray, maxDistance);
+        return boundingBox != null && !boundingBox.intersectBV(ray, maxDistance)
+                ? null
+                : calculateIntersectionsHelper(ray, maxDistance);
     }
 
     /**
@@ -103,6 +118,8 @@ public abstract class Intersectable {
 
         /** Dot product between the normal and the light vector */
         public double nl;
+
+
 
         /**
          * Constructs an Intersection object with the given geometry and point.

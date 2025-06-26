@@ -351,6 +351,12 @@ public class Camera implements Cloneable {
         private BvhMode bvhMode = BvhMode.OFF;
 
 
+        /**
+         * Set the BVH acceleration mode for the scene geometries.
+         *
+         * @param mode the BVH mode to use (OFF, CBR, HIERARCHY_MANUAL, HIERARCHY_AUTO)
+         * @return this builder instance
+         */
         public Builder setBvhMode(BvhMode mode) {
             this.bvhMode = mode;
             return this;
@@ -538,31 +544,33 @@ public class Camera implements Cloneable {
                 // Validate the configuration before building
                 validate(camera);
 
-                // Clone the camera instance
-                Camera cam = (Camera) camera.clone();
-
-                // Apply BVH mode to the geometries (if ray tracer and scene are set)
-                if (cam.rayTracerBase instanceof SimpleRayTracer simple) {
-                    Scene scene = simple.getScene();
+                    Camera cam = (Camera) camera.clone();
+                    // Apply BVH mode to scene/geometries if possible:
+                    Scene scene = null;
+                    if (cam.rayTracerBase instanceof SimpleRayTracer simple) {
+                        scene = simple.getScene();
+                    }
                     if (scene != null && scene.geometries != null) {
-
                         switch (bvhMode) {
-                            case OFF -> scene.geometries.turnOnOffBvh(false);
-                            case CBR -> {
+                            case OFF:
+                                scene.geometries.turnOnOffBvh(false);
+                                break;
+                            case CBR:
                                 scene.geometries.turnOnOffBvh(true);
-                                scene.geometries.flatten();
-                            }
-                            case HIERARCHY_MANUAL -> scene.geometries.turnOnOffBvh(true);
-                            case HIERARCHY_AUTO -> {
+                                scene.geometries.flatten(); // Flat list, no hierarchy
+                                break;
+                            case HIERARCHY_MANUAL:
+                                scene.geometries.turnOnOffBvh(true);
+                                // No flatten, manual hierarchy
+                                break;
+                            case HIERARCHY_AUTO:
                                 scene.geometries.turnOnOffBvh(true);
                                 scene.geometries.buildBinaryBvhTree();
-                            }
+                                break;
                         }
                     }
-                }
-
-                return cam;
-            } catch (CloneNotSupportedException ignored) {
+                    return cam;
+                } catch (CloneNotSupportedException ignored) {
                 return null;
             }
         }

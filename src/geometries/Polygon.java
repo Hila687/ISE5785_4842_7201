@@ -175,10 +175,10 @@ public class Polygon extends Geometry {
             maxZ = Math.max(vertex.getZ(), maxZ);
         }
 
-        boundingBox =  new BoundingBox(
-                new Point(minX, minY, minZ),
-                new Point(maxX, maxY, maxZ)
-        );
+        Point min = new Point(minX, minY, minZ);
+        Point max = new Point(maxX, maxY, maxZ);
+
+        boundingBox = new BoundingBox(min, max);
     }
 
 

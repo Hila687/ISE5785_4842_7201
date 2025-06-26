@@ -11,22 +11,15 @@ import java.util.List;
  * Geometries class represents a collection of {@link Intersectable} geometries,
  * using the Composite Design Pattern.
  * It allows grouping multiple geometric shapes and treating them as a single unit.
+ *
+ * @author Hila Rosental & Hila Miller
  */
-public class Geometries extends Container {
+public class Geometries extends Intersectable {
 
     /**
-     * A list to hold all the geometric shapes that can be intersected.
+     * Internal list of geometries that implement {@link Intersectable}.
      */
-    private final List<Container> containerList = new LinkedList<>();
-
-    /**
-     * get the containerList
-     *
-     * @return the containerList
-     */
-    public List<Container> getContainerList() {
-        return containerList;
-    }
+    private final List<Intersectable> IntersectableList = new LinkedList<>();
 
     /**
      * Default constructor - creates an empty list of geometries.
@@ -35,250 +28,43 @@ public class Geometries extends Container {
     }
 
     /**
-     * Constructor that initializes the collection with one or more geometric shapes.
+     * get the IntersectableList
      *
-     * @param geometries one or more geometric shapes to be added to the collection.
+     * @return the IntersectableList
      */
-    public Geometries(Container... geometries) {
+    public List<Intersectable> getIntersectableList() {
+        return IntersectableList;
+    }
+
+    /**
+     * Constructor that initializes the collection with one or more geometries.
+     *
+     * @param geometries one or more intersectable geometries to add
+     */
+    public Geometries(Intersectable... geometries) {
         add(geometries);
     }
 
     /**
-     * Adds one or more containers (geometries or groups) to the internal collection.
+     * Adds one or more geometries to the internal collection.
      *
-     * @param geometries containers to be added
+     * @param geometries intersectable geometries to be added
      */
-    public void add(Container... geometries) {
-        Collections.addAll(containerList, geometries);
+    public void add(Intersectable... geometries) {
+        // Add all given geometries to the list
+        IntersectableList.addAll(List.of(geometries));
     }
 
     /**
-     * Adds a list of containers to the internal collection.
+     * Add geometries to the list
      *
-     * @param geometries list of containers to be added
+     * @param geometries list of geometries
      */
-    public void add(List<Container> geometries) {
-        containerList.addAll(geometries);
-    }
-
-    /**
-     * Flattens the current list of geometries by unwrapping nested Geometries containers.
-     * After calling this method, all direct children will be simple (non-nested) containers.
-     */
-    public void flatten() {
-        // Create a temporary Geometries object to iterate safely
-        Geometries temp = new Geometries(containerList.toArray(new Container[0]));
-
-        // Clear the current list to refill it with flat containers
-        containerList.clear();
-
-        // Recursively flatten the temp structure into this one
-        flatten(temp);
-    }
-
-    /**
-     * Helper function to recursively flatten a nested Geometries structure.
-     *
-     * @param geometries the nested Geometries to flatten
-     */
-    private void flatten(Geometries geometries) {
-        for (Container container : geometries.containerList) {
-            // If the container is itself a Geometries instance (i.e., a subtree), go deeper
-            if (container instanceof Geometries inner) {
-                flatten(inner); // Recursive call
-            } else {
-                // Otherwise, it's a leaf (simple shape) → add it directly
-                containerList.add(container);
-            }
-        }
-    }
-
-    /**
-     * Removes containers from the internal collection.
-     *
-     * @param geometries containers to remove
-     * @return this object (for chaining)
-     */
-    public Geometries remove(Container... geometries) {
-        containerList.removeAll(List.of(geometries));
-        return this;
-    }
-
-    /**
-     * Enables or disables BVH acceleration recursively for all children.
-     * If enabled, sets bounding boxes where possible.
-     *
-     * @param on true to enable BVH, false to disable
-     */
-    public void turnOnOffBvh(boolean on) {
-        turnOnOffBvh(this, on);
-    }
-
-    /**
-     * Recursive helper for turnOnOffBvh – applies setting to all nested containers.
-     *
-     * @param geometries the geometries collection to apply the BVH setting on
-     * @param on         true to enable BVH, false to disable
-     */
-    private void turnOnOffBvh(Geometries geometries, boolean on) {
-        for (Container geometry : geometries.containerList) {
-            geometry.setBvh(on);
-            if (on && geometry.getBoundingBox() == null) {
-                geometry.setBoundingBox(); // only when turning ON
-            }
-            if (geometry instanceof Geometries subGeometries) {
-                turnOnOffBvh(subGeometries, on); // recurse deeper
-            }
-        }
-    }
-
-    /**
-     * Tries to set a bounding box that contains all bounded geometries.
-     * Ignores geometries that cannot be bounded (e.g., infinite surfaces).
-     * @return true if all geometries were bounded perfectly, false otherwise
-     */
-    private boolean setImperfectBoundingBox() {
-        boolean isPerfect = true;
-
-        // Start with extreme values
-        double xMin = Double.POSITIVE_INFINITY;
-        double yMin = Double.POSITIVE_INFINITY;
-        double zMin = Double.POSITIVE_INFINITY;
-        double xMax = Double.NEGATIVE_INFINITY;
-        double yMax = Double.NEGATIVE_INFINITY;
-        double zMax = Double.NEGATIVE_INFINITY;
-
-        for (Container geometry : containerList) {
-            // If it's a Geometries, try to set its own imperfect bounding box
-            if (geometry instanceof Geometries inner) {
-                if (!inner.setImperfectBoundingBox()) {
-                    isPerfect = false;
-                }
-            }
-
-            // Try to set box if not yet defined
-            if (geometry.getBoundingBox() == null) {
-                geometry.setBoundingBox();
-            }
-
-            var box = geometry.getBoundingBox();
-            if (box == null) {
-                isPerfect = false;
-                continue;
-            }
-
-            // Update bounding limits
-            xMin = Math.min(xMin, box.getMinX());
-            yMin = Math.min(yMin, box.getMinY());
-            zMin = Math.min(zMin, box.getMinZ());
-            xMax = Math.max(xMax, box.getMaxX());
-            yMax = Math.max(yMax, box.getMaxY());
-            zMax = Math.max(zMax, box.getMaxZ());
-        }
-
-        if (xMin == Double.POSITIVE_INFINITY) {
-            boundingBox = null;
-            return false;
-        }
-
-        // Create and set bounding box
-        boundingBox = new BoundingBox(
-                new Point(xMin, yMin, zMin),
-                new Point(xMax, yMax, zMax)
-        );
-
-        return isPerfect;
-    }
-
-    /**
-     * Checks if there are geometries that could not be bounded.
-     * If any are found, the bounding box for this node is cleared.
-     */
-    private void checkForUnBoundability() {
-        for (Container geometry : containerList) {
-            if (geometry.getBoundingBox() == null) {
-                boundingBox = null;
-                return;
-            }
-        }
+    public void add(List<Intersectable> geometries) {
+        IntersectableList.addAll(geometries);
     }
 
 
-
-    /**
-     * Builds a BVH tree for the current geometry collection.
-     * It flattens the tree, builds a bounding box around all bounded geometries,
-     * then recursively groups them into a binary hierarchy.
-     */
-    public void buildBvhTree() {
-        // First, flatten nested geometries into a flat list
-        flatten();
-
-        // Set an initial (imperfect) bounding box for this level
-        setImperfectBoundingBox();
-
-        // If no bounding box could be created (e.g., only infinite geometries) → do nothing
-        if (getBoundingBox() == null) {
-            return;
-        }
-
-        // Recursively organize geometries into a binary tree of bounding volumes
-        buildBvhTree(getBoundingBox());
-
-        // Check for geometries that couldn't be bounded, and reset the box if needed
-        checkForUnBoundability();
-    }
-
-    /**
-     * Recursively builds a BVH tree for the geometries inside the given bounding box.
-     * It separates the contained geometries into sub-boxes and wraps them in Geometries nodes.
-     *
-     * @param box The bounding box that defines the current BVH node
-     */
-    public void buildBvhTree(BoundingBox box) {
-        boolean foundContainedGeometries = false;
-
-        // Check which geometries are fully contained in the current bounding box
-        for (Container geometry : containerList) {
-            if (geometry instanceof Geometries inner) {
-                inner.setImperfectBoundingBox(); // Prepare nested bounding box
-            }
-
-            if (geometry.getBoundingBox() == null) {
-                geometry.setBoundingBox(); // Try to assign a box if missing
-            }
-
-            BoundingBox gBox = geometry.getBoundingBox();
-            if (gBox != null && box.contains(gBox)) {
-                foundContainedGeometries = true;
-            }
-        }
-
-        // If no geometry fits in this box, no subdivision needed
-        if (!foundContainedGeometries) return;
-
-        // Divide the current bounding box into two sub-boxes
-        List<BoundingBox> subBoxes = box.divide(); // Usually splits along the longest axis
-
-        // Recursively build BVH for both sub-boxes
-        buildBvhTree(subBoxes.get(0));
-        buildBvhTree(subBoxes.get(1));
-
-        // Create a new Geometries group for geometries fully inside this box
-        Geometries grouped = new Geometries();
-        for (Container geometry : new LinkedList<>(containerList)) {
-            BoundingBox gBox = geometry.getBoundingBox();
-            if (gBox != null && box.contains(gBox)) {
-                grouped.add(geometry);
-                containerList.remove(geometry);
-            }
-        }
-
-        // If any geometries were grouped, wrap them and add back to the main list
-        if (!grouped.containerList.isEmpty()) {
-            containerList.add(grouped);
-        }
-    }
 
 
     /**
@@ -289,18 +75,10 @@ public class Geometries extends Container {
      */
     @Override
     protected List<Intersection> calculateIntersectionsHelper(Ray ray, double maxDistance) {
-        if (isBvh() && getBoundingBox() != null && !getBoundingBox().intersects(ray, maxDistance)) {
-            return null;
-        }
-
-        if (containerList.size() == 1 && !(containerList.getFirst() instanceof Geometries)) {
-            return containerList.getFirst().calculateIntersections(ray, maxDistance);
-        }
-
         List<Intersection> intersections = null;
-        for (Container child : containerList) {
+        for (Intersectable child : IntersectableList) {
             var childIntersections = child.calculateIntersections(ray, maxDistance);
-            if (childIntersections != null && !childIntersections.isEmpty()) {
+            if (childIntersections != null) {
                 if (intersections == null)
                     intersections = new LinkedList<>(childIntersections);
                 else
@@ -310,11 +88,141 @@ public class Geometries extends Container {
         return intersections;
     }
 
-    @Override
-    public void setBoundingBox() {
-        if (!setImperfectBoundingBox())
-            boundingBox = null;
+    /**
+     * remove method allow to remove (even zero) geometries from the composite class
+     *
+     * @param geometries which we want to add to the composite class
+     * @return the geometries after the remove
+     */
+    public Geometries remove(Intersectable... geometries) {
+        IntersectableList.removeAll(List.of(geometries));
+        return this;
     }
+//endregion
+
+
+    /**
+     * method to flatten the geometries list
+     */
+    public void flatten() {
+        Geometries new_geometries = new Geometries(IntersectableList.toArray(new Intersectable[0]));
+        IntersectableList.clear();
+        // call the second function which will make sure we only
+        // have Intersectables with simple instances of geometry
+        flatten(new_geometries);
+    }
+
+    /**
+     * recursive func to flatten the geometries list (break the tree)
+     * receives a Geometries instance, flattens it and adds the shapes to this current instance
+     *
+     * @param new_geometries geometries
+     */
+    private void flatten(Geometries new_geometries) {
+        for (Intersectable Intersectable : new_geometries.IntersectableList) {
+            if (Intersectable instanceof Geometries geometries) {
+
+                flatten(geometries);
+            } else {
+                IntersectableList.add(Intersectable);
+            }
+        }
+    }
+
+    /**
+     * turns on or off the bvh acceleration in all the sub geometries using a recursive call
+     *
+     * @param on whether the bvh should be on or off
+     *           if on==true will also generate bounding boxes where it can
+     */
+    public void turnOnOffBvh(boolean on) {
+        turnOnOffBvh(this, on);
+    }
+
+    /**
+     * turns on or off the bvh acceleration in all the sub geometries using a recursive call
+     *
+     * @param on         whether the bvh should be on or off
+     * @param geometries the current geometries that we are turning on or off the bvh feature
+     *                   if on==true will also generate bounding boxes where it can
+     */
+    private void turnOnOffBvh(Geometries geometries, boolean on) {
+        for (Intersectable geometry : geometries.IntersectableList) {
+            if (on && geometry.boundingBox == null)
+                geometry.setBoundingBox();
+            if (geometry instanceof Geometries subGeometries)
+                turnOnOffBvh(subGeometries, on);
+        }
+    }
+
+    /**
+     * Builds a bounding volume hierarchy (BVH) tree for the geometries in this object.
+     * This method flattens the list of geometries, sets an imperfect bounding box,
+     * and then recursively builds the BVH tree starting from the bounding box.
+     * It also checks for any geometries that could not be bounded by a bounding box.
+     */
+    public void buildBvhTree() {
+        flatten();
+        setImperfectBoundingBox();
+        if (boundingBox == null)
+            return;
+        buildBvhTree(boundingBox);
+        checkForUnBoundability();
+    }
+
+    /**
+     * Recursively builds the BVH tree for the geometries in this object
+     * within a specified bounding box. The method divides the given
+     * bounding box into sub-boxes and assigns the geometries to these
+     * sub-boxes based on their bounding volumes.
+     *
+     * @param box the bounding box that contains the geometries to be organized
+     *            into a BVH tree. The method will attempt to place geometries into
+     *            sub-boxes and recursively build the BVH tree for each sub-box.
+     */
+    public void buildBvhTree( BoundingBox box) {
+        boolean areThereAny = false;
+
+        // Check which geometries can be contained within the bounding box
+        for (var geometry : getIntersectableList()) {
+            if (geometry instanceof Geometries innerGeometries)
+                innerGeometries.setImperfectBoundingBox();
+
+            if (geometry.boundingBox == null)
+                geometry.setBoundingBox();
+            if (geometry.boundingBox == null)
+                continue;
+
+            if (box.contain(geometry.boundingBox))
+                areThereAny = true;
+        }
+
+        if (!areThereAny)
+            return;
+
+
+        List<BoundingBox> subBoxes = box.divide();
+
+        buildBvhTree(subBoxes.getFirst()); // Recursively build BVH tree for the first sub-box
+        buildBvhTree(subBoxes.getLast()); // Recursively build BVH tree for the last sub-box
+
+        Geometries forThisBox = new Geometries(); // Intersectable for geometries within this box
+
+        // Assign geometries to this bounding box if they are contained within it
+        for (var geometry : getIntersectableList()) {
+            if (geometry.boundingBox == null)
+                geometry.setBoundingBox(); // Ensure the geometry has a bounding box
+
+            if (box.contain(geometry.boundingBox)) {
+                forThisBox.add(geometry); // Add geometry to this box's Intersectable
+            }
+        }
+        for (var g : forThisBox.getIntersectableList()) {
+            remove(g);
+        }
+        add(forThisBox);
+    }
+
 
     /**
      * automated build bounding volume hierarchy tree
@@ -331,30 +239,30 @@ public class Geometries extends Container {
      * @param edges whether to calculate between the edges (true) or centers (false)
      */
     public void buildBinaryBvhTree(boolean edges) {
-        boolean on = this.isBvh();
+        // flatten the list of Geometries
         this.flatten();
-        Container[] containersInArray = containerList.toArray(new Container[0]);
+        Intersectable[] IntersectablesInArray = IntersectableList.toArray(new Intersectable[0]);
         double distanceSquared, best;
         boolean allAreBounded = false;
-        Container bestGeometry1, bestGeometry2, geometry1 = null, geometry2 = null;
+        Intersectable bestGeometry1, bestGeometry2, geometry1 = null, geometry2 = null;
 
         while (!allAreBounded) {
             bestGeometry1 = bestGeometry2 = null;
             best = Double.POSITIVE_INFINITY;
             allAreBounded = true;
 
-            for (int i = 0; i < containersInArray.length; i++) {
-                geometry1 = containersInArray[i];
-                if (geometry1.getBoundingBox() == null)
+            for (int i = 0; i < IntersectablesInArray.length; i++) {
+                geometry1 = IntersectablesInArray[i];
+                if (geometry1.boundingBox == null)
                     geometry1.setBoundingBox();
-                if (geometry1.getBoundingBox() == null)
+                if (geometry1.boundingBox == null)
                     continue;
 
-                for (int j = i + 1; j < containersInArray.length; j++) {
-                    geometry2 = containersInArray[j];
-                    if (geometry2.getBoundingBox() == null)
+                for (int j = i + 1; j < IntersectablesInArray.length; j++) {
+                    geometry2 = IntersectablesInArray[j];
+                    if (geometry2.boundingBox == null)
                         geometry2.setBoundingBox();
-                    if (geometry2.getBoundingBox() == null)
+                    if (geometry2.boundingBox == null)
                         continue;
 
                     // measure the distanceSquared between every couple of bounding boxes
@@ -370,34 +278,112 @@ public class Geometries extends Container {
             if (bestGeometry1 != null) {
                 allAreBounded = false;
                 Geometries combined = new Geometries(bestGeometry1, bestGeometry2);
+                //will add and remove from IntersectableList
                 add(combined);
                 remove(bestGeometry1, bestGeometry2);
 
                 int i;
-                for (i = 0; i < containersInArray.length; i++) {
-                    if (containersInArray[i].equals(bestGeometry1) || containersInArray[i].equals(bestGeometry2)) {
-                        containersInArray[i] = combined;
+                for (i = 0; i < IntersectablesInArray.length; i++) {
+                    if (IntersectablesInArray[i].equals(bestGeometry1) || IntersectablesInArray[i].equals(bestGeometry2)) {
+                        IntersectablesInArray[i] = combined;
                         break;
                     }
                 }
-                for (; i < containersInArray.length; i++) {
-                    if (containersInArray[i].equals(bestGeometry1) || containersInArray[i].equals(bestGeometry2)) {
+                for (; i < IntersectablesInArray.length; i++) {
+                    if (IntersectablesInArray[i].equals(bestGeometry1) || IntersectablesInArray[i].equals(bestGeometry2)) {
                         break;
                     }
                 }
 
-                Container[] newArray = new Container[containersInArray.length - 1];
-                for (int k = 0, j = 0; k < containersInArray.length; k++) {
+                Intersectable[] newArray = new Intersectable[IntersectablesInArray.length - 1];
+                for (int k = 0, j = 0; k < IntersectablesInArray.length; k++) {
                     if (k != i) {
-                        newArray[j++] = containersInArray[k];
+                        newArray[j++] = IntersectablesInArray[k];
                     }
                 }
 
-                containersInArray = newArray;
+                IntersectablesInArray = newArray;
             }
         }
-        if (!on)
-            turnOnOffBvh(false);
+    }
+
+    @Override
+    public void setBoundingBox() {
+        if (!setImperfectBoundingBox())
+            boundingBox = null;
+    }
+
+    /**
+     * set an imperfect bounding box that will contain only bound-able elements and will ignore unbound-able ones
+     * important: needs to be used carefully , usually with the second function that will put back null if necessary
+     *
+     * @return whether the box is actually perfect or it should be null
+     */
+    private boolean setImperfectBoundingBox() {
+        boolean isPerfect = true;
+        if (IntersectableList.isEmpty()) {
+            boundingBox = null;
+            return false;
+        }
+        double xMin, xMax, yMin, yMax, zMin, zMax;
+        xMin = yMin = zMin = Double.POSITIVE_INFINITY;
+        xMax = yMax = zMax = Double.NEGATIVE_INFINITY;
+        BoundingBox box;
+        for (var Intersectable : IntersectableList) {
+            if (Intersectable instanceof Geometries innerGeometries) {
+                //set the imperfect box for the innerGeometries
+                if (!innerGeometries.setImperfectBoundingBox())
+                    isPerfect = false;
+            } else if (Intersectable.boundingBox == null) {
+                Intersectable.setBoundingBox();
+            }
+            box = Intersectable.boundingBox;
+
+            if (box == null) {
+                isPerfect = false;
+                continue;
+            }
+            xMin = Math.min(xMin, box.getMinX());
+            yMin = Math.min(yMin, box.getMinY());
+            zMin = Math.min(zMin, box.getMinZ());
+            xMax = Math.max(xMax, box.getMaxX());
+            yMax = Math.max(yMax, box.getMaxY());
+            zMax = Math.max(zMax, box.getMaxZ());
+
+        }
+
+        boundingBox = new BoundingBox(
+                new Point(xMin, yMin, zMin),
+                new Point(xMax, yMax, zMax)
+        );
+
+        return isPerfect;
+    }
+
+    /**
+     * Checks if any geometries in this collection are unboundable.
+     * If any geometry is found that cannot be bounded, the bounding box
+     * of this Geometries instance is set to null.
+     */
+    private void checkForUnBoundability() {
+        checkForUnBoundability(this);
+    }
+
+    /**
+     * Recursively checks if any geometries in the given Geometries instance are unboundable.
+     * If any geometry is found that cannot be bounded, the bounding box of the Geometries instance
+     * is set to null.
+     *
+     * @param geometries the Geometries instance to check for unboundable geometries
+     */
+    public void checkForUnBoundability(Geometries geometries) {
+        for (Intersectable geometry : geometries.getIntersectableList()) {
+            geometry.setBoundingBox();
+            if (geometry.boundingBox == null) {
+                boundingBox = null;
+                return;
+            }
+        }
     }
 
     /**
@@ -411,16 +397,18 @@ public class Geometries extends Container {
     public void printTree(int depth) {
         String indent = "  ".repeat(depth);
         System.out.println(indent + "Node | Depth: " + depth +
-                " | Children: " + containerList.size() +
+                " | Children: " + IntersectableList.size() +
                 " | BoundingBox: " + (boundingBox != null ? boundingBox : "null"));
-        for (Container child : containerList) {
+        for (Intersectable child : IntersectableList) {
             if (child instanceof Geometries) {
                 ((Geometries) child).printTree(depth + 1);
             } else {
                 System.out.println(indent + "  Leaf: " + child.getClass().getSimpleName() +
-                        (child.getBoundingBox() != null ? " | BoundingBox: " + child.getBoundingBox() : ""));
+                        (child.boundingBox != null ? " | BoundingBox: " + child.boundingBox : ""));
             }
         }
     }
+
+
 
 }

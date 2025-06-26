@@ -137,59 +137,27 @@ public class Cylinder extends Tube {
         return result;
     }
 
-//    @Override
-//    public BoundingBox getBoundingBox() {
-//        // Calculate the bottom and top points of the cylinder's axis
-//        Point p0 = axis.getHead(); // base center
-//        Point p1 = p0.add(axis.getDirection().scale(height)); // top center
-//
-//        // Convert points to vectors from origin (for coordinate extraction)
-//        Vector v0 = Point.ZERO.subtract(p0);
-//        Vector v1 = Point.ZERO.subtract(p1);
-//
-//        // Extract coordinates of base and top using dot products
-//        double x0 = -v0.dotProduct(Vector.AXIS_X);
-//        double y0 = -v0.dotProduct(Vector.AXIS_Y);
-//        double z0 = -v0.dotProduct(Vector.AXIS_Z);
-//
-//        double x1 = -v1.dotProduct(Vector.AXIS_X);
-//        double y1 = -v1.dotProduct(Vector.AXIS_Y);
-//        double z1 = -v1.dotProduct(Vector.AXIS_Z);
-//
-//        // Get the axis direction's projections on each coordinate axis
-//        double dx = axis.getDirection().dotProduct(Vector.AXIS_X);
-//        double dy = axis.getDirection().dotProduct(Vector.AXIS_Y);
-//        double dz = axis.getDirection().dotProduct(Vector.AXIS_Z);
-//
-//        // Calculate radius projection on each axis (perpendicular offset)
-//        double rx = radius * Math.sqrt(1 - dx * dx);
-//        double ry = radius * Math.sqrt(1 - dy * dy);
-//        double rz = radius * Math.sqrt(1 - dz * dz);
-//
-//        // Compute bounding limits with radius offset in each axis
-//        double minX = Math.min(x0, x1) - rx;
-//        double maxX = Math.max(x0, x1) + rx;
-//
-//        double minY = Math.min(y0, y1) - ry;
-//        double maxY = Math.max(y0, y1) + ry;
-//
-//        double minZ = Math.min(z0, z1) - rz;
-//        double maxZ = Math.max(z0, z1) + rz;
-//
-//        // Return bounding box from computed corners
-//        return new BoundingBox(
-//                new Point(minX, minY, minZ),
-//                new Point(maxX, maxY, maxZ)
-//        );
-//    }
 
     @Override
     public void setBoundingBox() {
-        // for now puts here null so there won't be problems, later might be implemented
-        boundingBox = null;
+        Point p1 = axis.getHead(); // base center
+        Point p2 = axis.getPoint(height); // top center
+
+        // Shift both points by radius in all directions to get full bounding volume
+        Point min = new Point(
+                Math.min(p1.getX(), p2.getX()) - radius,
+                Math.min(p1.getY(), p2.getY()) - radius,
+                Math.min(p1.getZ(), p2.getZ()) - radius
+        );
+
+        Point max = new Point(
+                Math.max(p1.getX(), p2.getX()) + radius,
+                Math.max(p1.getY(), p2.getY()) + radius,
+                Math.max(p1.getZ(), p2.getZ()) + radius
+        );
+
+        boundingBox = new BoundingBox(min, max);
     }
-
-
 
 
 }

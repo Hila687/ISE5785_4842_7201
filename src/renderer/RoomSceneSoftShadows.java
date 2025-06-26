@@ -600,7 +600,7 @@ public class RoomSceneSoftShadows {
                 .setVpSize(300, 400)
                 .setResolution(400, 600)
                 .setRayTracer(scene, RayTracerType.SIMPLE)
-                .setBvhMode(Camera.BvhMode.HIERARCHY_AUTO)
+                .setBvhMode(HIERARCHY_AUTO)
                 .build();
 
         // ===== Rendering =====

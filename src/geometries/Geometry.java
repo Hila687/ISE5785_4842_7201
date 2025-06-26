@@ -9,7 +9,7 @@ import primitives.Vector;
  * Abstract class representing a geometric shape in 3D space.
  * All geometric shapes must implement a method to return the normal vector at a given point.
  */
-public abstract class Geometry  extends Container {
+public abstract class Geometry extends Intersectable {
 
     protected Color emission = Color.BLACK; // Default emission color
 

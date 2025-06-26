@@ -72,6 +72,15 @@ public class Sphere extends RadialGeometry {
         return intersections.isEmpty() ? null : intersections;
     }
 
+    /**
+     * Gets the center point of the sphere.
+     *
+     * @return The center point of the sphere
+     */
+    public Point getCenter() {
+        return center;
+    }
+
     @Override
     public void setBoundingBox() {
         // Create min and max points by subtracting/adding radius in each axis

@@ -1,12 +1,18 @@
 package renderer;
 
-import geometries.*;
-import lighting.*;
+import geometries.Cylinder;
+import geometries.Plane;
+import geometries.Polygon;
+import geometries.Sphere;
+import lighting.AmbientLight;
+import lighting.SpotLight;
+import org.junit.jupiter.api.Test;
 import primitives.*;
-import scene.*;
+import scene.Scene;
 
-public class RoomScene {
-    public static void main(String[] args) {
+public class roomSceneAccelerationTests {
+    @Test
+    void roomSceneAcceleration() {
         // ===== Scene Setup =====
         Scene scene = new Scene("room")
                 .setBackground(new Color(5, 5, 15)) // deep blue-black background
@@ -604,14 +610,13 @@ public class RoomScene {
                 .setVpSize(300, 400)
                 .setResolution(1000, 1400)
                 .setRayTracer(scene, RayTracerType.SIMPLE)
-                //.setMultithreading(-1)
-                //.setBvhMode(Camera.BvhMode.HIERARCHY_AUTO)
+                .setMultithreading(-1)
+                .setBvhMode(Camera.BvhMode.HIERARCHY_MANUAL)
                 .build();
 
         // ===== Rendering =====
         camera.renderImage();
-        camera.writeToImage("roomScene");
+        camera.writeToImage("roomSceneTest");
     }
+
 }
-
-

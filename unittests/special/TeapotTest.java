@@ -1,91 +1,207 @@
 package special;
 
-import static java.awt.Color.YELLOW;
-import static primitives.Util.random;
-
-import org.junit.jupiter.api.*;
-
-import static java.lang.Math.*;
-
-import geometries.*;
+import geometries.Geometries;
+import geometries.Sphere;
+import geometries.Triangle;
 import lighting.PointLight;
+import org.junit.jupiter.api.Test;
 import primitives.*;
-import renderer.*;
+import renderer.Camera;
+import renderer.RayTracerType;
 import scene.Scene;
+
+import static java.awt.Color.YELLOW;
+import static java.lang.Math.*;
+import static primitives.Util.random;
+import static renderer.Camera.BvhMode.*;
 
 /**
  * Test rendering an image
+ *
  * @author Dan Zilberstein
  */
-class TeapotTest {
-    /** Default constructor to satisfy JavaDoc generator */
-    TeapotTest() { /* to satisfy JavaDoc generator */ }
+public class TeapotTest {
 
     /**
-     * Teapot without improvements
+     * Bubbles for the teapot
      */
-    @Test
-    @Disabled
-    void testTeapot1() {
-        prepareTeapot() //
-                .build() //
-                .renderImage() //
-                .printGrid(50, new Color(YELLOW)) //
-                .writeToImage("teapot1");
+    private Scene scene;
+
+    /**
+     * Default constructor to satisfy JavaDoc generator
+     */
+    public TeapotTest() { /* to satisfy JavaDoc generator */ }
+
+//    /**
+//     * testConfig is a helper function that tests the rendering of the teapot with different configurations
+//     *
+//     * @param name    the name of the output image file
+//     * @param bvhMode the BVH mode to use for the rendering
+//     * @param threads the number of threads to use for the rendering
+//     */
+//    void testConfig(String name, Camera.BvhMode bvhMode, int threads) {
+//    public void testConfig(String name, Camera.BvhMode bvhMode, int threads) {
+//        Camera.Builder builder = prepareTeapot();
+//
+//        builder.setBvhMode(bvhMode)
+//                .setMultithreading(threads);
+//
+//        Camera camera = builder.build();
+//        long start = System.nanoTime();
+//        camera.renderImage()
+//                .printGrid(30, new Color(YELLOW))
+//                .writeToImage(name);
+//        long end = System.nanoTime();
+//        System.out.println(name + " Render time: " + ((end - start) / 1_000_000.0) + " ms");
+//
+//
+//    }
+
+    /**
+     * testConfig is a helper function that tests the rendering of the teapot with different configurations
+     *
+     * @param name    the name of the output image file
+     * @param bvhMode the BVH mode to use for the rendering
+     * @param threads the number of threads to use for the rendering
+     */
+    public void testConfig(String name, Camera.BvhMode bvhMode, int threads) {
+        // debug with prints
+        Camera.Builder builder = prepareTeapot();
+
+        builder.setBvhMode(bvhMode)
+                .setMultithreading(threads);
+
+        Camera camera = builder.build();
+        long start = System.nanoTime();
+        camera.renderImage()
+                .printGrid(30, new Color(YELLOW))
+                .writeToImage(name);
+        long end = System.nanoTime();
+        System.out.println(name + " Render time: " + ((end - start) / 1_000_000.0) + " ms");
     }
 
     /**
-     * 10 Teapot tests with CBR
+     * Test all configurations of the teapot
      */
     @Test
-    @Disabled
-    void testTeapot2() {
-        for (int i = 10; i > 0; --i) {
-            teapot2();
-        }
+    void testAllConfigs() {
+        testConfig("teapot-off_noMT", OFF, 0);
+        testConfig("teapot-off_MT-1", OFF, -1);
+        testConfig("teapot-off_MT-2", OFF, -2);
+        testConfig("teapot-cbr_noMT", CBR, 0);
+        testConfig("teapot-cbr_MT-1", CBR, -1);
+        testConfig("teapot-cbrVH_MT-2", CBR, -2);
+        testConfig("teapot-auto_noMT", HIERARCHY_AUTO, 0);
+        testConfig("teapot-auto_MT-1", HIERARCHY_AUTO, -1);
+        testConfig("teapot-auto_MT-2", HIERARCHY_AUTO, -2);
+//        testConfig("teapot-manual_noMT", HIERARCHY_MANUAL, 0);
+//        testConfig("teapot-manual_MT-1", HIERARCHY_MANUAL, -1);
+//        testConfig("teapot-manual_MT-2", HIERARCHY_MANUAL, -2);
+
+
     }
 
     /**
-     * 100 Teapot tests with BVH
+     * Test all configurations of the teapot in Moodle
+     * The teapot is a part of the Moodle test suite
      */
     @Test
-   // @Disabled
-    void testTeapot3() {
-        for (int i = 100; i > 0; --i) {
-            teapot3();
-        }
+    void testAllConfigsMoodle() {
+        testConfig("off_noMT", OFF, 0);
+        testConfig("off_MT-3", OFF, 3);
+        testConfig("off_stream", OFF, -1);
+
+        testConfig("auto_noMT", HIERARCHY_AUTO, 0);
+        testConfig("auto_MT-3", HIERARCHY_AUTO, 3);
+        testConfig("auto_stream", HIERARCHY_AUTO, -1);
     }
+
+//    /**
+//     * Teapot without improvements
+//     */
+//    @Test
+//    @Disabled
+//    void testTeapot1() {
+//        Camera.Builder builder = prepareTeapot();
+//        Camera camera = builder.build();
+//
+//        long start = System.nanoTime();
+//
+//        camera.renderImage()
+//                .printGrid(30, new Color(YELLOW))
+//                .writeToImage("teapot1");
+//        long end = System.nanoTime();
+//
+//        System.out.println("teapot1" + " Render time: " + ((end - start) / 1_000_000.0) + " ms");//
+//
+//
+//    }
+//
+//    /**
+//     * 10 Teapot tests with CBR
+//     */
+//    @Test
+//    @Disabled
+//    void testTeapot2() {
+//        for (int i = 10; i > 0; --i) {
+//            teapot2();
+//        }
+//    }
+//
+//    /**
+//     * 100 Teapot tests with BVH
+//     */
+//    @Test
+//    @Disabled
+//    void testTeapot3() {
+//        for (int i = 100; i > 0; --i) {
+//            teapot3();
+//        }
+//    }
 
     /**
      * Teapot with CBR
      */
     void teapot2() {
-        prepareTeapot() //
-                // .enableCBR() //
-                .build() //
-                .renderImage() //
-                .printGrid(50, new Color(YELLOW)) //
+        Camera.Builder builder = prepareTeapot();
+        builder.setBvhMode(CBR);
+        Camera camera = builder.build();
+
+        long start = System.nanoTime();
+
+        camera.renderImage()
+                .printGrid(30, new Color(YELLOW))
                 .writeToImage("teapot2");
+        long end = System.nanoTime();
+
+        System.out.println("teapot2" + " Render time: " + ((end - start) / 1_000_000.0) + " ms");//
     }
 
     /**
      * Teapot with BVH
      */
     void teapot3() {
-        prepareTeapot() //
-                .setBvhMode(Camera.BvhMode.HIERARCHY_MANUAL)
-                .build() //
-                .renderImage() //
-                .printGrid(50, new Color(YELLOW)) //
+        Camera.Builder builder = prepareTeapot();
+        builder.setBvhMode(HIERARCHY_AUTO);
+        Camera camera = builder.build();
+
+        long start = System.nanoTime();
+
+        camera.renderImage()
+                .printGrid(30, new Color(YELLOW))
                 .writeToImage("teapot3");
+        long end = System.nanoTime();
+
+        System.out.println("teapot3" + " Render time: " + ((end - start) / 1_000_000.0) + " ms");//
     }
 
     /**
      * Prepare data for test that generates a teapot picture
+     *
      * @return camera builder with all the data for the test
      */
     Camera.Builder prepareTeapot() {
-        Scene scene = new Scene("Test scene");
+        scene = new Scene("Test scene");
         addTeapotToScene(scene);
 
         if (bubbles == null) {
@@ -98,32 +214,28 @@ class TeapotTest {
 
         scene.lights.add(new PointLight(new Color(500, 500, 500), new Point(100, 0, -100)).setKq(0.000001));
 
-        return Camera.getBuilder() //
-                .setResolution(1000, 1000) //
-                // .setResolution(1, 1) //
-                .setRayTracer(scene, RayTracerType.SIMPLE) //
-                .setLocation(new Point(0, 0, -1000)).setDirection(Point.ZERO, Vector.AXIS_Y) //
-                .setVpDistance(1000).setVpSize(200, 200) //
-                // .setMultithreading(-3) // fail - paging file size
-                // .setMultithreading(-2) // 9.3
-                // .setMultithreading(-1) // 9.6
-                .setMultithreading(0) // 25
-                // .setMultithreading(1) // 25.8
-                // .setMultithreading(2) // 13.6
-                // .setMultithreading(3) // 10.7
-                // .setMultithreading(4) // 10.7
-                // .setDebugPrint(1.0) //
-                ;
+        return Camera.getBuilder()
+                .setResolution(500, 500)
+                .setRayTracer(scene, RayTracerType.SIMPLE)
+                .setLocation(new Point(0, 0, -1000)).setDirection(Point.ZERO, Vector.AXIS_Y)
+                .setVpDistance(1000).setVpSize(200, 200)
+                .setDebugPrint(1.0);
     }
 
-    /** The color of the teapot */
-    private static final Color    color    = new Color(200, 0, 0);
-    /** The material of the teapot */
+    /**
+     * The color of the teapot
+     */
+    private static final Color color = new Color(200, 0, 0);
+    /**
+     * The material of the teapot
+     */
     private static final Material material = new Material().setKD(0.5).setKS(0.5).setShininess(60);
 
-    /** The vertices point list in the teapot's triangle mesh */
-    private static Point[]        points   = new Point[]
-            { null,                                                                                     //
+    /**
+     * The vertices point list in the teapot's triangle mesh
+     */
+    private static Point[] points = new Point[]
+            {null,                                                                                     //
                     new Point(40.6266, 28.3457, -1.10804),                                                    //
                     new Point(40.0714, 30.4443, -1.10804),                                                    //
                     new Point(40.7155, 31.1438, -1.10804),                                                    //
@@ -658,6 +770,7 @@ class TeapotTest {
 
     /**
      * Produce a scene with a 3D model of the teapot
+     *
      * @param scene the scene data container
      */
     private void addTeapotToScene(Scene scene) {
@@ -1657,35 +1770,62 @@ class TeapotTest {
         );
     }
 
-    /** the field is used for creating the bubbles from the teapot */
+    /**
+     * the field is used for creating the bubbles from the teapot
+     */
     private static Geometries bubbles;
-    /** the field is used for creating the bubbles from the teapot */
-    private static double     coneX;
-    /** the field is used for creating the bubbles from the teapot */
-    private static double     coneY;
-    /** the field is used for creating the bubbles from the teapot */
-    private static double     coneZ;
-    /** the field is used for creating the bubbles from the teapot */
-    private static double     radiusAtOne;
-    /** the field is used for creating the bubbles from the teapot */
-    private static double     maxConeHeight;
-    /** the field is used for creating the bubbles from the teapot */
-    private static double     minBubbleRadius;
-    /** the field is used for creating the bubbles from the teapot */
-    private static double     maxBubbleRadius;
-    /** the field is used for creating the bubbles from the teapot */
-    private static Double3    bubbleKS;
-    /** the field is used for creating the bubbles from the teapot */
-    private static Double3    bubbleKT;
-    /** the field is used for creating the bubbles from the teapot */
-    private static Double3    bubbleKR;
-    /** the field is used for creating the bubbles from the teapot */
-    private static double     bubbleMinKD;
-    /** the field is used for creating the bubbles from the teapot */
-    private static double     bubbleMaxKD;
+    /**
+     * the field is used for creating the bubbles from the teapot
+     */
+    private static double coneX;
+    /**
+     * the field is used for creating the bubbles from the teapot
+     */
+    private static double coneY;
+    /**
+     * the field is used for creating the bubbles from the teapot
+     */
+    private static double coneZ;
+    /**
+     * the field is used for creating the bubbles from the teapot
+     */
+    private static double radiusAtOne;
+    /**
+     * the field is used for creating the bubbles from the teapot
+     */
+    private static double maxConeHeight;
+    /**
+     * the field is used for creating the bubbles from the teapot
+     */
+    private static double minBubbleRadius;
+    /**
+     * the field is used for creating the bubbles from the teapot
+     */
+    private static double maxBubbleRadius;
+    /**
+     * the field is used for creating the bubbles from the teapot
+     */
+    private static Double3 bubbleKS;
+    /**
+     * the field is used for creating the bubbles from the teapot
+     */
+    private static Double3 bubbleKT;
+    /**
+     * the field is used for creating the bubbles from the teapot
+     */
+    private static Double3 bubbleKR;
+    /**
+     * the field is used for creating the bubbles from the teapot
+     */
+    private static double bubbleMinKD;
+    /**
+     * the field is used for creating the bubbles from the teapot
+     */
+    private static double bubbleMaxKD;
 
     /**
      * Set the cone for generating bubbles from the teapot
+     *
      * @param x         X coordinate for the cone top
      * @param y         Y coordinate for the cone top
      * @param z         Z coordinate for the cone top
@@ -1693,15 +1833,16 @@ class TeapotTest {
      * @param maxHeight maximum height in the cone for generating the bubbles
      */
     private static void setCone(double x, double y, double z, double r, double maxHeight) {
-        coneX         = x;
-        coneY         = y;
-        coneZ         = z;
-        radiusAtOne   = r;
+        coneX = x;
+        coneY = y;
+        coneZ = z;
+        radiusAtOne = r;
         maxConeHeight = maxHeight;
     }
 
     /**
      * Setter for minimal and maximal size of the bubbles
+     *
      * @param min minimal size
      * @param max maximal size
      */
@@ -1712,6 +1853,7 @@ class TeapotTest {
 
     /**
      * Setter for bubble material parameters
+     *
      * @param minKD minimal diffusive factor
      * @param maxKD maximal diffusive factor
      * @param ks    specular factor
@@ -1721,33 +1863,35 @@ class TeapotTest {
     private static void setBubbleMaterial(double minKD, double maxKD, double ks, double kr, double kt) {
         bubbleMinKD = minKD;
         bubbleMaxKD = maxKD;
-        bubbleKS    = new Double3(ks);
-        bubbleKR    = new Double3(kr);
-        bubbleKT    = new Double3(kt);
+        bubbleKS = new Double3(ks);
+        bubbleKR = new Double3(kr);
+        bubbleKT = new Double3(kt);
     }
 
     /**
      * Generate a bubble
-     * @param  y the height in cone for the center of the bubble
-     * @return   the bubble sphere
+     *
+     * @param y the height in cone for the center of the bubble
+     * @return the bubble sphere
      */
     private static Sphere getRandomBubble(double y) {
-        double  coneR    = y * radiusAtOne;
-        double  randomR  = random(0, coneR);
-        double  angle    = random(0, 2 * PI);
-        double  x        = randomR * cos(angle);
-        double  z        = randomR * sin(angle);
-        Point   o        = new Point(coneX + x, coneY + y, coneZ + z);
-        double  r        = random(minBubbleRadius, maxBubbleRadius);
-        Double3 kd       = new Double3(random(bubbleMinKD, bubbleMaxKD),                            //
+        double coneR = y * radiusAtOne;
+        double randomR = random(0, coneR);
+        double angle = random(0, 2 * PI);
+        double x = randomR * cos(angle);
+        double z = randomR * sin(angle);
+        Point o = new Point(coneX + x, coneY + y, coneZ + z);
+        double r = random(minBubbleRadius, maxBubbleRadius);
+        Double3 kd = new Double3(random(bubbleMinKD, bubbleMaxKD),                            //
                 random(bubbleMinKD, bubbleMaxKD),                            //
                 random(bubbleMinKD, bubbleMaxKD));
-        var     material = new Material().setKD(kd).setKS(bubbleKS).setKR(bubbleKR).setKT(bubbleKT);
+        var material = new Material().setKD(kd).setKS(bubbleKS).setKR(bubbleKR).setKT(bubbleKT);
         return (Sphere) new Sphere(r, o).setMaterial(material);
     }
 
     /**
      * Create a composite geometry containing the bubbles (generate the bubbles)
+     *
      * @param amount amount of bubbles to generate
      */
     private static void prepareBubbles(int amount) {
