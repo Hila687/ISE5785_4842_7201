@@ -604,13 +604,15 @@ public class RoomScene {
                 .setVpSize(300, 400)
                 .setResolution(1000, 1400)
                 .setRayTracer(scene, RayTracerType.SIMPLE)
-                //.setMultithreading(-1)
-                //.setBvhMode(Camera.BvhMode.HIERARCHY_AUTO)
+                .setMultithreading(-1)
+                .setBvhMode(Camera.BvhMode.HIERARCHY_AUTO)
+                .setLocation(new Point(0, 0, 100))
+                .setDirection(new Vector(0, 0, -1), new Vector(0, 1, 0))
                 .build();
 
         // ===== Rendering =====
         camera.renderImage();
-        camera.writeToImage("roomScene");
+        camera.writeToImage("roomSceneRotated");
     }
 }
 

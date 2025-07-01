@@ -594,7 +594,8 @@ public class RoomSceneTest {
                 new Color(1000, 700, 500),
                 new Point(0, 30, 0),
                 new Vector(0, -1, 0))
-                .setKl(0.000000035).setKq(0.0006));
+                .setKl(0.000000035).setKq(0.0006)
+                .setRadius(6));
 
 
         // ----------- Sun geometry (outside the room) -----------
@@ -615,6 +616,7 @@ public class RoomSceneTest {
                 new Vector(2.5, -2.5, 0.5))
                 .setKl(0.0002).setKq(0.0004)
                 .setNarrowBeam(14)
+                .setRadius(6)
         );
 
         return Camera.getBuilder()
@@ -948,13 +950,15 @@ public class RoomSceneTest {
                 new Color(1000, 700, 500),
                 new Point(0, 30, 0),
                 new Vector(0, -1, 0))
-                .setKl(0.000000035).setKq(0.0006));
+                .setKl(0.000000035).setKq(0.0006)
+                .setRadius(6));
         scene.lights.add(new SpotLight(
                 new Color(1500, 1200, 1000),
                 new Point(-70, 30, -25),
                 new Vector(2.5, -2.5, 0.5))
                 .setKl(0.0002).setKq(0.0004)
                 .setNarrowBeam(14)
+                .setRadius(6)
         );
         return scene;
     }

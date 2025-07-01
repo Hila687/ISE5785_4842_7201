@@ -67,51 +67,89 @@ public class Board {
         return this;
     }
 
+
     /**
-     * Generates a list of points evenly distributed in a square pattern on the board.
+     * Generates a list of points evenly distributed in a square pattern on the board,
+     * with a small random offset inside each sub-square for soft shadow sampling.
      *
-     * @param numberOfSamplesInRow the number of samples per row
-     * @return a list of points in a square pattern
+     * @param numberOfSamplesInRow the number of samples per row (and column)
+     * @return a list of points in a square pattern centered around the light source
      */
     private List<Point> getPointsSquare(int numberOfSamplesInRow) {
+        // Size of each sub-square within the main square area
         double subPixelSize = size / numberOfSamplesInRow;
+
+        // List to hold the generated sample points
         List<Point> points = new LinkedList<>();
+
         Point point;
         double x, y;
+
+        // Loop through the rows and columns of the square grid
         for (int i = 0; i < numberOfSamplesInRow; i++) {
             for (int j = 0; j < numberOfSamplesInRow; j++) {
-                y = (-(i - (numberOfSamplesInRow - 1.0) / 2.0) * subPixelSize) + (random() - 0.5) * subPixelSize;
-                x = ((j - (numberOfSamplesInRow - 1.0) / 2.0) * subPixelSize) + (random() - 0.5) * subPixelSize;
+                // Compute y-offset from the center (in world units), flipped vertically
+                // and add random jitter within the sub-square to break symmetry
+                y = (-(i - (numberOfSamplesInRow - 1.0) / 2.0) * subPixelSize)
+                        + (random() - 0.5) * subPixelSize;
+
+                // Compute x-offset from the center (in world units) with random jitter
+                x = ((j - (numberOfSamplesInRow - 1.0) / 2.0) * subPixelSize)
+                        + (random() - 0.5) * subPixelSize;
+
+                // Start from the center of the light source
                 point = center;
 
+                // Add horizontal offset along VRight direction
                 if (!isZero(x)) {
                     point = point.add(VRight.scale(x));
                 }
+
+                // Add vertical offset along VUp direction
                 if (!isZero(y)) {
                     point = point.add(VUp.scale(y));
                 }
+
+                // Add the final computed point to the list
                 points.add(point);
             }
         }
+
+        // Return the complete list of sampled points
         return points;
     }
 
+
     /**
-     * Generates a list of points evenly distributed in a circular pattern on the board.
+     * Filters a square-distributed set of points and returns only those
+     * that lie within a circular area centered at the light source.
      *
-     * @param numberOfSamplesPerRow the number of samples per row
-     * @return a list of points in a circular pattern
+     * @param numberOfSamplesPerRow the number of samples per row (and column)
+     * @return a list of points within a circular pattern
      */
     private List<Point> getPointsCircle(int numberOfSamplesPerRow) {
+        // Generate a square grid of points with random jitter
         List<Point> pointsSquare = getPointsSquare(numberOfSamplesPerRow);
+
+        // Prepare a list to hold only the points that fall inside the circle
         List<Point> pointsCircled = new LinkedList<>();
+
+        // Calculate the squared radius of the circle
+        // Since the circle is inscribed in a square of size 'size',
+        // its radius is size / 2 → and radius^2 = size^2 / 4
         double radiusSquared = size * size / 4d;
+
+        // Iterate through all points in the square
         for (Point point : pointsSquare)
+            // Check if the point is inside the circle (by comparing squared distances)
             if (point.distanceSquared(center) < radiusSquared)
+                // Add the point to the circular list if it falls inside the radius
                 pointsCircled.add(point);
 
+        // Return only the points within the circular area
         return pointsCircled;
     }
+
 
     /**
      * Generates a list of points based on the number of samples per row.

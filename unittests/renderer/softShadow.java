@@ -1,18 +1,18 @@
 package renderer;
 
-import geometries.Cylinder;
-import geometries.Plane;
-import geometries.Polygon;
-import geometries.Sphere;
-import lighting.AmbientLight;
-import lighting.SpotLight;
+import geometries.*;
+import lighting.*;
 import org.junit.jupiter.api.Test;
 import primitives.*;
-import scene.Scene;
+import scene.*;
 
-public class roomSceneAccelerationTests {
+import static renderer.Camera.BvhMode.HIERARCHY_AUTO;
+import static renderer.Camera.BvhMode.HIERARCHY_MANUAL;
+
+
+public class softShadow {
     @Test
-    void roomSceneAcceleration() {
+    void roomSceneSoftShadow() {
         // ===== Scene Setup =====
         Scene scene = new Scene("room")
                 .setBackground(new Color(5, 5, 15)) // deep blue-black background
@@ -23,12 +23,6 @@ public class roomSceneAccelerationTests {
                 .setKD(0.8)
                 .setKS(0.1)
                 .setShininess(30); // General matte surfaces (floor, ceiling, back wall, right wall)
-
-        Material floorMaterial = new Material()
-                .setKD(0.8)
-                .setKS(0.1)
-                .setShininess(30)
-                .setKR(0.1); // General matte surfaces (floor)
 
         Material wallMaterial = new Material()
                 .setKD(0.8)
@@ -118,7 +112,7 @@ public class roomSceneAccelerationTests {
         scene.geometries.add(
                 new Plane(new Point(0, -35, 0), new Vector(0, 1, 0))     // Floor
                         .setEmission(new Color(150, 75, 20))
-                        .setMaterial(floorMaterial),
+                        .setMaterial(matteGray),
 
                 new Plane(new Point(0, 50, 0), new Vector(0, -1, 0))     // Ceiling
                         .setEmission(new Color(70, 70, 70))
@@ -130,7 +124,7 @@ public class roomSceneAccelerationTests {
 
                 new Plane(new Point(50, 0, 0), new Vector(-1, 0, 0))     // Right wall
                         .setEmission(new Color(120, 200, 240))
-                        .setMaterial(floorMaterial)
+                        .setMaterial(matteGray)
         );
 
         // ===== Left Wall Segments with Window Opening =====
@@ -584,7 +578,7 @@ public class roomSceneAccelerationTests {
                 new Color(1000, 700, 500),
                 new Point(0, 30, 0),
                 new Vector(0, -1, 0))
-                .setKl(0.000000035).setKq(0.0006));
+                .setKl(0.000000035).setKq(0.0006).setRadius(5));
 
         // ----------- Sun geometry (outside the room) -----------
         scene.geometries.add(new Sphere(
@@ -599,7 +593,7 @@ public class roomSceneAccelerationTests {
                 new Point(-70, 30, -25),
                 new Vector(2.5, -2.5, 0.5))
                 .setKl(0.0002).setKq(0.0004)
-                .setNarrowBeam(14)
+                .setNarrowBeam(14).setRadius(6)
         );
 
         // ===== Camera Setup =====
@@ -608,16 +602,18 @@ public class roomSceneAccelerationTests {
                 .setDirection(new Vector(0, 0, -1), new Vector(0, 1, 0))
                 .setVpDistance(300)
                 .setVpSize(300, 400)
-                .setResolution(1000, 1400)
+                .setResolution(400, 600)
                 .setRayTracer(scene, RayTracerType.SIMPLE)
                 .setMultithreading(-1)
-                .setBvhMode(Camera.BvhMode.HIERARCHY_MANUAL)
-                
+                .setBvhMode(HIERARCHY_MANUAL)
                 .build();
 
         // ===== Rendering =====
         camera.renderImage();
-        camera.writeToImage("roomSceneTest");
+        camera.writeToImage("roomSceneSoftShadows");
     }
+
+
+
 
 }

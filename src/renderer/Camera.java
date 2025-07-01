@@ -104,10 +104,6 @@ public class Camera implements Cloneable {
         HIERARCHY_AUTO
     }
 
-
-
-
-
     /**
      * Private constructor to enforce the use of the Builder class.
      * This ensures the camera is created only via the builder pattern.
@@ -121,6 +117,22 @@ public class Camera implements Cloneable {
      */
     public static Builder getBuilder() {
         return new Builder();
+    }
+
+    /**
+     * Creates a new Builder based on an existing Camera.
+     *
+     * @param existingCamera the camera to copy settings from
+     * @return A new Builder instance with copied settings
+     */
+    public static Builder getBuilder(Camera existingCamera) {
+        return new Builder()
+                .setLocation(existingCamera.getP0())
+                .setDirection(existingCamera.getVTo(), existingCamera.getVUp())
+                .setVpDistance(existingCamera.getDistance())
+                .setVpSize(existingCamera.getWidth(), existingCamera.getHeight())
+                .setResolution(existingCamera.getnX(), existingCamera.getnY())
+                .setRayTracer(null, RayTracerType.SIMPLE);
     }
 
     /**
@@ -157,6 +169,8 @@ public class Camera implements Cloneable {
         // Return a ray from the camera position to the calculated point on the view plane
         return new Ray(p0, pIJ.subtract(p0));
     }
+
+    //=========================== Getters ===========================
 
     /**
      * @return the forward direction vector of the camera
@@ -214,6 +228,23 @@ public class Camera implements Cloneable {
         return height;
     }
 
+    /**
+     * gets the number of pixels in the x direction (nX).
+     *
+     * @return The number of pixels in the x direction (nX).
+     */
+    public int getnX() {
+        return nX;
+    }
+    /**
+     * gets the number of pixels in the y direction (nY).
+     *
+     * @return The number of pixels in the y direction (nY).
+     */
+    public int getnY() {
+        return nY;
+    }
+
 
     /**
      * Draws a grid on the image by coloring pixels at specified intervals.
@@ -247,6 +278,8 @@ public class Camera implements Cloneable {
         imageWriter.writeToImage(fileName);
         return this;
     }
+
+    //=========================== Rendering ===========================
 
     /** This function renders image's pixel color map from the scene
      * included in the ray tracer object
@@ -324,11 +357,54 @@ public class Camera implements Cloneable {
 
     }
 
+    // ================================ Camera rotation methods ================================
+
+    /**
+     * Rotates the camera around a target point on the horizontal (Y) axis.
+     *
+     * @param camera       the original camera
+     * @param target       the point to keep in focus
+     * @param angleDegrees the rotation angle in degrees (clockwise)
+     * @param scene        the scene to attach to the rotated camera
+     * @return a new Builder instance with updated camera location and direction
+     */
+    public static Camera.Builder rotateCameraAroundTarget(Camera camera, Point target, double angleDegrees, Scene scene) {
+        if (camera == null || target == null || scene == null) {
+            throw new IllegalArgumentException("Camera, target, and scene cannot be null");
+        }
+        // Ensure the angle is within a valid range
+        Vector radiusVec = camera.getP0().subtract(target);
+        double x = radiusVec.dotProduct(Vector.AXIS_X);
+        double z = radiusVec.dotProduct(Vector.AXIS_Z);
+
+        // Convert the angle from degrees to radians and calculate the new coordinates
+        double angleRad = Math.toRadians(angleDegrees);
+        double rotatedX = x * Math.cos(angleRad) + z * Math.sin(angleRad);
+        double rotatedZ = -x * Math.sin(angleRad) + z * Math.cos(angleRad);
+
+        // Create a new point for the camera location after rotation
+        Vector rotatedVec = new Vector(rotatedX, 0, rotatedZ);
+        Point newLocation = target.add(rotatedVec);
+
+        // Ensure the camera direction is still pointing towards the target
+        return Camera.getBuilder()
+                .setLocation(newLocation)
+                .setDirection(target)
+                .setVpDistance(camera.getDistance())
+                .setVpSize(camera.getWidth(), camera.getHeight())
+                .setResolution(camera.getnX(), camera.getnY())
+                .setRayTracer(scene, RayTracerType.SIMPLE);
+    }
+
+
     /**
      * Builder class for constructing Camera instances.
      * This builder follows the Builder design pattern.
      */
     public static class Builder {
+
+        //=========================== Builder fields ===========================
+
         /**
          * The camera object being built.
          */
@@ -343,6 +419,10 @@ public class Camera implements Cloneable {
          * The error message for zero values.
          */
         private final String zeroErr = " cannot be zero";
+
+
+
+        //=========================== BVH setup ===========================
 
         /**
          * The BVH mode for the scene geometries.
@@ -361,6 +441,8 @@ public class Camera implements Cloneable {
             this.bvhMode = mode;
             return this;
         }
+
+
 
         /**
          * Set multi-threading <br>
@@ -395,6 +477,8 @@ public class Camera implements Cloneable {
             return this;
         }
 
+
+        //=========================== Camera direction setup (3 overloads)===========================
         /**
          * Sets the direction vectors of the camera.
          *
@@ -488,8 +572,6 @@ public class Camera implements Cloneable {
             return this;
         }
 
-
-
         /**
          * Sets the position of the camera.
          *
@@ -533,6 +615,44 @@ public class Camera implements Cloneable {
             return this;
         }
 
+        //=========================== Camera rotation and translation methods ===========================
+
+        /**
+         * Translates the camera by a given vector, maintaining the same focus.
+         *
+         * @param shift the translation vector
+         * @return this builder
+         */
+        public Builder translate(Vector shift) {
+            if (camera.p0 == null) {
+                throw new IllegalArgumentException("Camera location must be set before translation.");
+            }
+            camera.p0 = camera.p0.add(shift);
+            if (target != null) {
+                target = target.add(shift);
+            }
+            return this;
+        }
+
+        /**
+         * Rotates the camera around its own vTo axis (like tilting the head sideways).
+         *
+         * @param degrees angle to rotate clockwise (in degrees)
+         * @return this builder
+         */
+        public Builder rotateAroundVTo(double degrees) {
+            if (camera.vTo == null || camera.vUp == null) {
+                throw new IllegalArgumentException("vTo and vUp must be set before rotation.");
+            }
+
+            double angleRad = Math.toRadians(degrees);
+            Vector vUp = camera.vUp;
+            Vector vRight = camera.vRight;
+
+            Vector newVUp = vUp.scale(Math.cos(angleRad)).add(vRight.scale(Math.sin(angleRad)));
+            camera.vUp = newVUp.normalize();
+            return this;
+        }
 
         /**
          * Builds and returns a Camera object after validating all fields.
@@ -707,23 +827,36 @@ public class Camera implements Cloneable {
         }
 
         /**
-         * Sets the ray tracer for the camera.
+         * Sets the ray tracer for the camera, using a default number of soft shadow samples.
          *
-         * @param scene          the scene to trace rays in
-         * @param rayTracerType  the type of ray tracer to use
+         * @param scene         the scene to trace rays in
+         * @param rayTracerType the type of ray tracer to use
          * @return the Builder instance
          */
         public Builder setRayTracer(Scene scene, RayTracerType rayTracerType) {
+            return setRayTracer(scene, rayTracerType, 15); // ברירת מחדל
+        }
 
-            // Currently only SIMPLE type is supported
+
+        /**
+         * Sets the ray tracer for the camera, with configurable soft shadow samples.
+         *
+         * @param scene             the scene to trace rays in
+         * @param rayTracerType     the type of ray tracer to use
+         * @param softShadowSamples number of samples for soft shadows
+         * @return the Builder instance
+         */
+        public Builder setRayTracer(Scene scene, RayTracerType rayTracerType, int softShadowSamples) {
             switch (rayTracerType) {
                 case SIMPLE:
-                    camera.rayTracerBase = new SimpleRayTracer(scene);
+                    camera.rayTracerBase = new SimpleRayTracer(scene)
+                            .setSoftShadowSamples(softShadowSamples);
                     break;
                 default:
                     throw new IllegalArgumentException("Invalid ray tracer type");
             }
             return this;
         }
+
     }
 }

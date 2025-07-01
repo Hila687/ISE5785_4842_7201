@@ -64,9 +64,6 @@ public class Geometries extends Intersectable {
         IntersectableList.addAll(geometries);
     }
 
-
-
-
     /**
      * Calculates the intersections of a ray with all geometries in the collection.
      *
@@ -98,8 +95,6 @@ public class Geometries extends Intersectable {
         IntersectableList.removeAll(List.of(geometries));
         return this;
     }
-//endregion
-
 
     /**
      * method to flatten the geometries list

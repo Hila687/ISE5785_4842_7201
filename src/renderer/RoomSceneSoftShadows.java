@@ -20,6 +20,12 @@ public class RoomSceneSoftShadows {
                 .setKS(0.1)
                 .setShininess(30); // General matte surfaces (floor, ceiling, back wall, right wall)
 
+        Material floorMaterial = new Material()
+                .setKD(0.8)
+                .setKS(0.1)
+                .setShininess(30)
+                .setKR(0.1); // General matte surfaces (floor)
+
         Material wallMaterial = new Material()
                 .setKD(0.8)
                 .setKS(0.2)
@@ -108,7 +114,7 @@ public class RoomSceneSoftShadows {
         scene.geometries.add(
                 new Plane(new Point(0, -35, 0), new Vector(0, 1, 0))     // Floor
                         .setEmission(new Color(150, 75, 20))
-                        .setMaterial(matteGray),
+                        .setMaterial(floorMaterial),
 
                 new Plane(new Point(0, 50, 0), new Vector(0, -1, 0))     // Ceiling
                         .setEmission(new Color(70, 70, 70))
@@ -120,7 +126,7 @@ public class RoomSceneSoftShadows {
 
                 new Plane(new Point(50, 0, 0), new Vector(-1, 0, 0))     // Right wall
                         .setEmission(new Color(120, 200, 240))
-                        .setMaterial(matteGray)
+                        .setMaterial(floorMaterial)
         );
 
         // ===== Left Wall Segments with Window Opening =====
@@ -574,7 +580,7 @@ public class RoomSceneSoftShadows {
                 new Color(1000, 700, 500),
                 new Point(0, 30, 0),
                 new Vector(0, -1, 0))
-                .setKl(0.000000035).setKq(0.0006).setRadius(5));
+                .setKl(0.000000035).setKq(0.0006).setRadius(6));
 
         // ----------- Sun geometry (outside the room) -----------
         scene.geometries.add(new Sphere(
@@ -598,8 +604,9 @@ public class RoomSceneSoftShadows {
                 .setDirection(new Vector(0, 0, -1), new Vector(0, 1, 0))
                 .setVpDistance(300)
                 .setVpSize(300, 400)
-                .setResolution(400, 600)
+                .setResolution(1000, 1400)
                 .setRayTracer(scene, RayTracerType.SIMPLE)
+                .setMultithreading(-1)
                 .setBvhMode(HIERARCHY_AUTO)
                 .build();
 

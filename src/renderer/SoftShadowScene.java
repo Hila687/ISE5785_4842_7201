@@ -71,6 +71,8 @@ public class SoftShadowScene {
                 .setVpSize(350, 350)
                 .setResolution(500, 500)
                 .setRayTracer(scene, RayTracerType.SIMPLE)
+                .setMultithreading(-1)
+                .setBvhMode(Camera.BvhMode.HIERARCHY_AUTO)
                 .build();
 
         camera.renderImage();

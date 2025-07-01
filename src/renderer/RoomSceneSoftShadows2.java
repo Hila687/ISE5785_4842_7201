@@ -597,7 +597,7 @@ public class RoomSceneSoftShadows2 {
                 .setVpDistance(300)
                 .setVpSize(300, 400)
                 .setResolution(1000, 1400)
-                .setRayTracer(scene, RayTracerType.SIMPLE)
+                .setRayTracer(scene, RayTracerType.SIMPLE,15)
                 .setMultithreading(-1)
                 .build();
 

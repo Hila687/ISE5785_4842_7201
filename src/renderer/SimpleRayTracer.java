@@ -41,6 +41,16 @@ public class SimpleRayTracer extends RayTracerBase {
         super(scene);
     }
 
+
+    /**
+     * Returns the scene associated with this ray tracer.
+     *
+     * @return the scene
+     */
+    public Scene getScene() {
+        return this.scene;
+    }
+
     /**
      * Set the number of samples for soft shadows
      *
@@ -86,17 +96,17 @@ public class SimpleRayTracer extends RayTracerBase {
     @Override
     public Color traceRay(Ray ray) {
 
+        // Find the closest intersection for the ray
         Intersection closestIntersection = findClosestIntersection(ray);
+
+        // If no intersection found, return the background color
         if (closestIntersection == null) {
             return scene.backgroundColor;
         }
 
+        // If intersection is found, calculate the color at that point
         return calcColor(closestIntersection, ray);
     }
-
-
-
-
 
     /**
      * Calculates the final color at a given intersection point.
@@ -110,6 +120,7 @@ public class SimpleRayTracer extends RayTracerBase {
      * @return the calculated color at the intersection point
      */
     private Color calcColor(Intersection intersection, Ray ray) {
+        // Preprocess the intersection to get view vector, normal vector, and their dot product
         return preprocessIntersection(intersection, ray.getDirection())
                 ? calcColor(intersection, MAX_CALC_COLOR_LEVEL, INITIAL_K)
                 .add(scene.ambientLight.getIntensity()
@@ -117,6 +128,30 @@ public class SimpleRayTracer extends RayTracerBase {
                 : Color.BLACK;
     }
 
+    /**
+     * Prepares intersection data: view vector, normal vector, and their dot product.
+     *
+     * @param intersection the intersection to process
+     * @param v the ray direction vector
+     * @return true if valid (not perpendicular), false otherwise
+     */
+    public boolean preprocessIntersection(Intersection intersection, Vector v) {
+        if (intersection == null) {
+            return false;
+        }
+
+        // Store the ray direction
+        intersection.v = v;
+
+        // Compute the normal at the intersection point
+        intersection.normal = intersection.geometry.getNormal(intersection.point);
+
+        // Compute dot product between ray and normal
+        intersection.nv = intersection.normal.dotProduct(v);
+
+        // Skip if the ray is perpendicular to the surface
+        return !isZero(intersection.nv);
+    }
 
     /**
      * Recursively calculates the color at an intersection point.
@@ -130,6 +165,7 @@ public class SimpleRayTracer extends RayTracerBase {
      * @return the resulting color at the intersection point
      */
     private Color calcColor(Intersection intersection, int level, Double3 k) {
+        // If recursion depth is exceeded, return black
         if (level == 0 || k.lowerThan(MIN_CALC_COLOR_K)) {
             return Color.BLACK;
         }
@@ -140,7 +176,26 @@ public class SimpleRayTracer extends RayTracerBase {
         return localEffects.add(globalEffects);
     }
 
+    /**
+     * Checks if the intersection point is unshaded (not in shadow) for a specific light source.
+     * This method casts a shadow ray towards the light source and checks for intersections.
+     *
+     * @param intersection the intersection to check
+     * @param light the light source to check against
+     * @return true if the point is unshaded, false if it is in shadow
+     */
+    private boolean unshaded(Intersection intersection, LightSource light) {
+        Vector l = light.getL(intersection.point);
+        Vector n = intersection.geometry.getNormal(intersection.point);
 
+        Ray shadowRay = new Ray(intersection.point, l, n);
+        double lightDistance = light.getDistance(intersection.point);
+
+        var intersections = scene.geometries
+                .calculateIntersections(shadowRay, lightDistance);
+
+        return intersections == null || intersections.isEmpty();
+    }
 
 
     /**
@@ -151,7 +206,6 @@ public class SimpleRayTracer extends RayTracerBase {
      * @return true if the point is unshaded, false if it is in shadow
      */
     private boolean unshaded(Intersection intersection) {
-
 
         // Flip light direction: from point toward light source
         Vector lightDirection = intersection.lightDirection.scale(-1);
@@ -183,7 +237,6 @@ public class SimpleRayTracer extends RayTracerBase {
         // No blocking geometry found → the point is illuminated
         return true;
     }
-
 
     /**
      * Calculates the transparency of the intersection point.
@@ -229,77 +282,90 @@ public class SimpleRayTracer extends RayTracerBase {
         return kT; // Return the cumulative transparency
     }
 
-
-
     /**
-     * Calculates the transparency of the intersection point considering area lights.
-     * If the light source has a radius, it samples points on the light's surface
-     * to determine the average transparency.
+     * Calculates the overall transparency (ktr) from a point to an area light source
+     * by sampling multiple rays across the light's surface (for soft shadow effect).
      *
-     * @param intersection the intersection point to check
-     * @param numberOfSamples the number of samples to take on the light's surface
-     * @return the average transparency factor (0 = fully blocked, 1 = fully transparent)
+     * @param intersection the intersection point being shaded
+     * @param numberOfSamples the number of soft shadow samples to use
+     * @return averaged transparency factor from the samples
      */
     private Double3 transparency(Intersection intersection, int numberOfSamples) {
+        // If the light is effectively a point light (no radius or no position), or not enough samples requested,
+        // fall back to the standard hard-shadow transparency computation
         if (intersection.light.getRadius() == 0 ||
                 intersection.light.getPosition() == null ||
                 numberOfSamples <= 1) {
             return transparency(intersection);
         }
+
+        // Direction from the intersection point toward the light
         Vector l = intersection.lightDirection;
+
+        // Create an orthogonal basis (vUp and vRight) around the light direction
         Vector vUp = l.createOrthogonal();
         Vector vRight = vUp.crossProduct(l);
 
+        // Create a virtual "board" around the light's position
+        // to serve as the sampling area (radius * 2 = full diameter)
         Board board = new Board(
                 intersection.light.getPosition(),
                 vUp, vRight,
                 intersection.light.getRadius() * 2
-        ).setCircle(true);
+        ).setCircle(true); // Limit sampling area to a circular shape
 
-        List<Point> lightSamples = board.getPoints(15);
-        Double3 ktrSum = Double3.ZERO;
-        int contributingSamples = 0;
+        // Generate sampling points over the circular area of the light
+        List<Point> lightSamples = board.getPoints(numberOfSamples); // 8x8 samples = 64 rays (customizable)
 
+        Double3 ktrSum = Double3.ZERO; // Accumulator for total transparency
+        int contributingSamples = 0;   // Counter for how many samples contributed
+
+        // Loop through all sampled points on the light's surface
         for (Point areaLightPoint : lightSamples) {
+            // Create a direction vector from the hit point to the sample point on the light
             Vector areaLightDir = areaLightPoint.subtract(intersection.point).normalize();
+
+            // Skip samples where light is coming from behind the surface
             if (intersection.nl <= 0)
                 continue;
+
+            // Measure the distance to the sampled point on the light
             double lightDist = intersection.point.distance(areaLightPoint);
 
+            // Construct a shadow ray toward the sampled light point
             Ray shadowRay = new Ray(intersection.point, areaLightDir, intersection.normal);
+
+            // Get all intersections along the shadow ray (up to the light distance)
             List<Intersection> shadowHits = scene.geometries.calculateIntersections(shadowRay, lightDist);
+
+            // Start with full transparency (no blockage)
             Double3 ktr = Double3.ONE;
+
+            // For each object intersected along the way, multiply by its transparency
             if (shadowHits != null) {
                 for (Intersection hit : shadowHits) {
-                    ktr = ktr.product(hit.material.kT);
+                    ktr = ktr.product(hit.material.kT); // Multiply by object's transparency
+
+                    // Stop early if transparency becomes negligible
                     if (ktr.lowerThan(MIN_CALC_COLOR_K)) {
                         ktr = Double3.ZERO;
                         break;
                     }
                 }
             }
+
+            // Accumulate the transparency from this sample
             ktrSum = ktrSum.add(ktr);
             contributingSamples++;
         }
+
+        // If no samples contributed (all were back-facing or blocked), return full blockage
         if (contributingSamples == 0)
             return Double3.ZERO;
+
+        // Return the average transparency based on number of samples attempted
         return ktrSum.reduce(lightSamples.size());
     }
-
-    private boolean unshaded(Intersection intersection, LightSource light) {
-        Vector l = light.getL(intersection.point);
-        Vector n = intersection.geometry.getNormal(intersection.point);
-
-        Ray shadowRay = new Ray(intersection.point, l, n);
-        double lightDistance = light.getDistance(intersection.point);
-
-        var intersections = scene.geometries
-                .calculateIntersections(shadowRay, lightDistance);
-
-        return intersections == null || intersections.isEmpty();
-    }
-
-
 
     /**
      * Constructs a reflected ray from the given intersection point.
@@ -320,33 +386,6 @@ public class SimpleRayTracer extends RayTracerBase {
     private Ray constructRefractedRay(Intersection intersection) {
         return new Ray(intersection.point, intersection.v, intersection.normal);
     }
-
-
-    /**
-     * Prepares intersection data: view vector, normal vector, and their dot product.
-     *
-     * @param intersection the intersection to process
-     * @param v the ray direction vector
-     * @return true if valid (not perpendicular), false otherwise
-     */
-    public boolean preprocessIntersection(Intersection intersection, Vector v) {
-        if (intersection == null) {
-            return false;
-        }
-
-        // Store the ray direction
-        intersection.v = v;
-
-        // Compute the normal at the intersection point
-        intersection.normal = intersection.geometry.getNormal(intersection.point);
-
-        // Compute dot product between ray and normal
-        intersection.nv = intersection.normal.dotProduct(v);
-
-        // Skip if the ray is perpendicular to the surface
-        return !isZero(intersection.nv);
-    }
-
 
     /**
      * Sets the current light source for the intersection and computes
@@ -384,7 +423,6 @@ public class SimpleRayTracer extends RayTracerBase {
         return !(isZero(intersection.nv) && isZero(intersection.nl));
     }
 
-
     /**
      * Computes local lighting (diffuse + specular) from all light sources.
      *
@@ -403,10 +441,7 @@ public class SimpleRayTracer extends RayTracerBase {
 
             Double3 kT;
             // Get the transparency level of the point
-            if (intersection.light.getRadius()== 0)
-                 kT = transparency(intersection);
-            else
-                 kT = transparency(intersection, softShadowSamples);
+            kT = transparency(intersection, softShadowSamples);
 
             // Skip this light source if the point is fully blocked
             if (kT.equals(Double3.ZERO)) {
@@ -503,12 +538,4 @@ public class SimpleRayTracer extends RayTracerBase {
         return intersection.material.KD.scale(absNl);
     }
 
-    /**
-     * Returns the scene associated with this ray tracer.
-     *
-     * @return the scene
-     */
-    public Scene getScene() {
-        return this.scene;
-    }
 }
