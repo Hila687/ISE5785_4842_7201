@@ -124,8 +124,118 @@ public class RoomScene {
 
                 new Plane(new Point(50, 0, 0), new Vector(-1, 0, 0))     // Right wall
                         .setEmission(new Color(120, 200, 240))
-                        .setMaterial(floorMaterial)
+                        .setMaterial(matteGray)
         );
+
+        // ===== Mirror on Right Wall =====
+        scene.geometries.add(new Polygon(
+                new Point(49.9, -15, -25),
+                new Point(49.9, -15, -5),
+                new Point(49.9, 30, -5),
+                new Point(49.9, 30, -25))
+                .setEmission(new Color(30, 30, 30)) // Slightly brighter to help with the effect
+                .setMaterial(new Material()
+                        .setKD(0.05)     // Minimal diffuse
+                        .setKS(1.0)      // Strong specular reflection
+                        .setShininess(1500)  // Very sharp highlight
+                        .setKR(0.9))     // Reflectivity
+        );
+
+        // Mirror Frame Background
+        scene.geometries.add(new Polygon(
+                new Point(49.95, -16, -26),
+                new Point(49.95, -16, -4),
+                new Point(49.95, 31, -4),
+                new Point(49.95, 31, -26))
+                .setEmission(new Color(20, 20, 20)) // Dark gray-black
+                .setMaterial(new Material().setKD(0.7).setKS(0.2).setShininess(100)));
+
+        // ========== Decorative Plant: Pot + Stem + Branches + Leaves + Flowers ==========
+
+        // plant pot
+        scene.geometries.add(new Cylinder(
+                3, new Ray(new Point(35, -35, -39), new Vector(0, 1, 0)), 5)
+                .setEmission(new Color(120, 60, 40)) // Terracotta color
+                .setMaterial(new Material().setKD(0.8).setKS(0.2).setShininess(50)));
+
+        // main stem
+        scene.geometries.add(new Cylinder(
+                0.5, new Ray(new Point(35, -30, -39), new Vector(0, 1, 0)), 20)
+                .setEmission(new Color(80, 50, 20))
+                .setMaterial(new Material().setKD(0.6).setKS(0.3).setShininess(30)));
+
+
+        // right branch
+        scene.geometries.add(new Cylinder(
+                0.3, new Ray(new Point(35, -15, -39), new Vector(0.6, 0.8, 0).normalize()), 7)
+                .setEmission(new Color(80, 50, 20))
+                .setMaterial(new Material().setKD(0.6).setKS(0.3).setShininess(30)));
+
+
+
+        //right branch flower
+        scene.geometries.add(new Sphere(
+                0.6, new Point(38.5, -11, -38))
+                .setEmission(new Color(255, 100, 150)) // Bright pink
+                .setMaterial(new Material().setKD(0.7).setKS(0.4).setShininess(80)));
+
+
+        // left branch
+        scene.geometries.add(new Cylinder(
+                0.3, new Ray(new Point(35, -13, -39), new Vector(-0.5, 0.9, 0.2).normalize()), 6)
+                .setEmission(new Color(80, 50, 20))
+                .setMaterial(new Material().setKD(0.6).setKS(0.3).setShininess(30)));
+
+
+        // left branch flower
+        scene.geometries.add(new Sphere(
+                0.6, new Point(32, -9, -37.7))
+                .setEmission(new Color(255, 100, 150))
+                .setMaterial(new Material().setKD(0.7).setKS(0.4).setShininess(80)));
+
+
+        // back branch
+        scene.geometries.add(new Cylinder(
+                0.3, new Ray(new Point(35, -13.5, -39), new Vector(0, 0.9, -0.5).normalize()), 6.5)
+                .setEmission(new Color(80, 50, 20))
+                .setMaterial(new Material().setKD(0.6).setKS(0.3).setShininess(30)));
+
+        // back branch flower
+        scene.geometries.add(new Sphere(
+                0.6, new Point(35, -8, -43.6))
+                .setEmission(new Color(255, 100, 150))
+                .setMaterial(new Material().setKD(0.7).setKS(0.4).setShininess(80)));
+
+
+        // Right leaf – Z = -38, lowered Y
+        scene.geometries.add(new Polygon(
+                new Point(39, -11.6, -38),
+                new Point(40.2, -11, -38),
+                new Point(39, -10.4, -38),
+                new Point(37.8, -11, -38))  // All Z = -38
+                .setEmission(new Color(20, 120, 20)) // Green
+                .setMaterial(new Material().setKD(0.9).setKS(0.2).setShininess(40)));
+
+
+        // Left leaf – Z = -37.7, lowered Y
+        scene.geometries.add(new Polygon(
+                new Point(31.5, -9.9, -37.7),
+                new Point(32.8, -9.1, -37.7),
+                new Point(31.5, -8.3, -37.7),
+                new Point(30.2, -9.1, -37.7))  // All Z = -37.7
+                .setEmission(new Color(20, 120, 20))
+                .setMaterial(new Material().setKD(0.9).setKS(0.2).setShininess(40)));
+
+
+        // Back leaf – Z = -43.6, lowered Y
+        scene.geometries.add(new Polygon(
+                new Point(35, -9.3, -43),
+                new Point(36.2, -8.5, -43),
+                new Point(35, -7.7, -43),
+                new Point(33.8, -8.5, -43))  // All Z = -43.6
+                .setEmission(new Color(20, 120, 20))
+                .setMaterial(new Material().setKD(0.9).setKS(0.2).setShininess(40)));
+
 
         // ===== Left Wall Segments with Window Opening =====
 
@@ -507,7 +617,7 @@ public class RoomScene {
                 new Point(-0.7, -16.3, -1),
                 new Point(-0.7, -10.505, -4),
                 new Point(-13.7, -10.505, -4))
-                .setEmission(new Color(80, 180, 255))
+                .setEmission(new Color(100, 150, 255))
                 .setMaterial(screenMaterial));
 
         // Screen back
@@ -572,6 +682,30 @@ public class RoomScene {
                 .setEmission(new Color(20, 20, 20))
                 .setMaterial(metalBase));
 
+        // ----------- Sun geometry (outside the room) -----------
+        scene.geometries.add(new Sphere(
+                3, new Point(-53, 15, -19))  // שמאלה וגבוה, מחוץ לחדר
+                .setEmission(new Color(255, 240, 180))
+                .setMaterial(new Material().setKD(0.2).setKS(0.6).setShininess(200))
+        );
+
+        // ========== Crystal Sphere on Middle Shelf ==========
+
+        // Base – small pink cylinder to rest the crystal on
+        scene.geometries.add(new Cylinder(
+                1.4,
+                new Ray(new Point(-33.5, -15, -33.5), new Vector(0, 1, 0)),
+                0.8)
+                .setEmission(new Color(80, 60, 70)) // muted pink base
+                .setMaterial(new Material().setKD(0.8).setKS(0.3).setShininess(100)));
+
+
+        // Crystal sphere – transparent pink ball
+        scene.geometries.add(new Sphere(
+                2, new Point(-33.5, -12.6, -33.5)) // slightly above base
+                .setEmission(new Color(500, 0, 0)) // gentle pink hue
+                .setMaterial(new Material().setKD(0.1).setKS(0.8).setShininess(150).setKT(1))); // transparent and glossy
+
         // ===== Lights =====
         //lamp light (simulated using SpotLight for a focused beam)
         scene.lights.add(new SpotLight(
@@ -579,13 +713,6 @@ public class RoomScene {
                 new Point(0, 30, 0),
                 new Vector(0, -1, 0))
                 .setKl(0.000000035).setKq(0.0006));
-
-        // ----------- Sun geometry (outside the room) -----------
-        scene.geometries.add(new Sphere(
-                3, new Point(-53, 15, -19))  // שמאלה וגבוה, מחוץ לחדר
-                .setEmission(new Color(255, 240, 180))
-                .setMaterial(new Material().setKD(0.2).setKS(0.6).setShininess(200))
-        );
 
         // ----------- Sunlight (as SpotLight through the window) -----------
         scene.lights.add(new SpotLight(
@@ -595,6 +722,12 @@ public class RoomScene {
                 .setKl(0.0002).setKq(0.0004)
                 .setNarrowBeam(14)
         );
+
+        // Glowing pink light inside the sphere
+        scene.lights.add(new PointLight(
+                new Color(500, 200, 350), // soft pink glow
+                new Point(-33.5, -12.6, -33.5)) // center of sphere
+                .setKl(0.006).setKq(0.038));
 
         // ===== Camera Setup =====
         Camera camera = new Camera.Builder()
@@ -612,7 +745,7 @@ public class RoomScene {
 
         // ===== Rendering =====
         camera.renderImage();
-        camera.writeToImage("roomSceneRotated");
+        camera.writeToImage("roomScene");
     }
 }
 
